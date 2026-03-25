@@ -1,19 +1,25 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateCategoryDto {
   @IsString()
   @IsNotEmpty({ message: 'Название категории обязательно' })
   name: string;
 
-  @IsNumber() // Исправлено: если ID — число
-  @IsOptional() // Позволяет полю быть null или отсутствовать
+  @IsNumber()
+  @IsOptional()
   parentCategoryId: number | null;
 
   @IsString()
   @IsOptional()
   description: string;
 
-  @IsString() // Исправлено: slug — это всегда строка
+  @IsString()
   @IsNotEmpty()
   slug: string;
 

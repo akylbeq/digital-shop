@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json({ ok: true, result: tgData });
+    return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('Server error:', error);
 

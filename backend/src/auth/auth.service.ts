@@ -1,17 +1,19 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { TokenService } from './token.service';
-import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
-    private readonly tokens: TokenService
-  ) {
-  }
+    private readonly tokens: TokenService,
+  ) {}
 
   async login(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
@@ -28,10 +30,10 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
-        created_at: user.created_at
+        created_at: user.created_at,
       },
       accessToken,
-      refreshToken
+      refreshToken,
     };
   }
 
@@ -46,32 +48,31 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
-        created_at: user.created_at
+        created_at: user.created_at,
       },
       accessToken,
-      refreshToken
+      refreshToken,
     };
   }
 
-  async me(token: string) {
-    const user = await this.tokens.verifyAccessToken(token);
-    if (!user) throw new NotFoundError('User does not exist');
+  me(token: string) {
+    const user = this.tokens.verifyAccessToken(token);
+    if (!user) throw new NotFoundException('User does not exist');
     return user;
   }
 
   async refresh(refreshToken: string) {
+    const payload = this.tokens.verifyRefreshToken(refreshToken);
+    const user = await this.usersService.findById(payload.sub);
+    if (!user) throw new UnauthorizedException('User not found');
     try {
-      const payload = this.tokens.verifyRefreshToken(refreshToken);
-      const user = await this.usersService.findById(payload.sub);
-      if (!user) {
-        throw new UnauthorizedException('User not found');
-      }
-
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...userWithoutPassword } = user;
 
       const accessToken = this.tokens.createAccessToken(user);
-      return {accessToken, user: userWithoutPassword};
-    } catch {
+      return { accessToken, user: userWithoutPassword };
+    } catch (e) {
+      if (e instanceof UnauthorizedException) throw e;
       throw new UnauthorizedException('Refresh token expired');
     }
   }

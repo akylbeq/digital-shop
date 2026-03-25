@@ -32,7 +32,7 @@ export default function RootLayout({
     >
     <Providers>
       <Header/>
-      <main className="pt-[87px]">
+      <main className="">
         {children}
       </main>
       <Footer/>

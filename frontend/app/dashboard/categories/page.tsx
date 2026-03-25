@@ -3,71 +3,90 @@
 import { useEffect, useState } from 'react';
 import { Edit3, Image as ImageIcon, Search, Trash2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useCategoryStore } from '@/app/store/category/category.store';
+import { useCategoriesStore } from '@/app/store/categories/categories.store';
 import AddCategory from '@/app/dashboard/categories/AddCategory';
 import EditCategoryModal from '@/app/dashboard/categories/EditCategory';
-import $api from '@/app/axiosApi';
+import Image from 'next/image';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+import Pagination from '@/app/components/Pagination';
 
 export default function CategoriesPage() {
-  const { adminCategories, adminFetchAll, setSelectedCategory, deleteCategory } = useCategoryStore();
+  const {
+    categories,
+    getCategories,
+    setSelectedCategory,
+    deleteCategory,
+    total
+  } = useCategoriesStore();
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const totalPages = Math.ceil(total / limit);
 
   const categoryDeleting = async (id: number) => {
     try {
-      await deleteCategory(id)
-      await adminFetchAll();
+      await deleteCategory(id);
+      await getCategories(page, limit, search);
     } catch (e) {
       console.log(e);
     }
-  }
+  };
 
-  // Загружаем данные при монтировании
   useEffect(() => {
-    void adminFetchAll();
-  }, [adminFetchAll]);
-
-  // Логика фильтрации (выполняется при каждом рендере, если изменился search или categories)
-  const filteredCategories = adminCategories.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.slug.toLowerCase().includes(search.toLowerCase()) ||
-    (c.description && c.description.toLowerCase().includes(search.toLowerCase()))
-  );
+    void getCategories(page, limit, search);
+  }, [page, limit, search, getCategories]);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* HEADER С ПОИСКОМ */}
+    <div className="py-6 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold uppercase tracking-tighter">Categories</h1>
           <p className="text-[10px] text-zinc-500 uppercase tracking-widest">
-            Total: {adminCategories.length} | Found: {filteredCategories.length}
+            Total: {total}
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={14} />
-            <Input
-              placeholder="Search categories..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 bg-zinc-900 border-white/10 text-[11px] font-mono focus:ring-1 focus:ring-white/20"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
-              >
-                <X size={12} />
-              </button>
-            )}
+        <div>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={14}/>
+              <Input
+                placeholder="Search categories..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                className="pl-9 h-9 bg-zinc-900 border-white/10 text-[11px] font-mono focus:ring-1 focus:ring-white/20"
+              />
+              {search && (
+                <button
+                  onClick={() => {
+                    setSearch('');
+                    setPage(1);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                >
+                  <X size={12}/>
+                </button>
+              )}
+            </div>
+            <AddCategory/>
+            <Select
+              value={limit.toString()}
+              onValueChange={(v) => setLimit(Number(v))}
+            >
+              <SelectTrigger className="w-15">{limit}</SelectTrigger>
+              <SelectContent className="w-15">
+                {[10, 20, 30, 40, 50].map((item) => (
+                  <SelectItem value={item.toString()} key={item}>{item}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-
-          <AddCategory />
         </div>
       </div>
 
-      {/* ТАБЛИЦА */}
       <div className="rounded-sm border border-white/5 bg-zinc-950/50 overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -80,40 +99,27 @@ export default function CategoriesPage() {
           </tr>
           </thead>
           <tbody className="font-mono text-[11px]">
-          {filteredCategories.length > 0 ? (
-            filteredCategories.map((category) => (
-              <tr
-                key={category.id}
-                className="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors group"
-              >
-                {/* Изображение */}
+          {categories.length > 0 ? (
+            categories.map((category) => (
+              <tr key={category.id}
+                  className="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors group">
                 <td className="px-6 py-4">
-                  <div className="w-10 h-10 rounded border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden">
+                  <div
+                    className="relative w-10 h-10 rounded border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden">
                     {category.image ? (
-                      <img
-                        src={'http://localhost:8000' + category.image}
-                        alt={category.name}
-                        className="w-full h-full object-cover"
-                      />
+                      <Image src={'http://localhost:8000' + category.image} alt={category.name} fill sizes="100vw"
+                             className="object-cover" unoptimized/>
                     ) : (
-                      <ImageIcon size={14} className="text-zinc-800" />
+                      <ImageIcon size={14} className="text-zinc-800"/>
                     )}
                   </div>
                 </td>
-
-                {/* Название и Слаг */}
                 <td className="px-6 py-4">
                   <div className="flex flex-col">
-                      <span className="text-zinc-200 uppercase font-bold tracking-tight">
-                        {category.name}
-                      </span>
-                    <span className="text-[9px] text-zinc-600">
-                        /{category.slug}
-                      </span>
+                    <span className="text-zinc-200 uppercase font-bold tracking-tight">{category.name}</span>
+                    <span className="text-[9px] text-zinc-600">/{category.slug}</span>
                   </div>
                 </td>
-
-                {/* Статус */}
                 <td className="px-6 py-4">
                     <span className={`px-2 py-0.5 rounded-full text-[9px] uppercase ${
                       category.isActive
@@ -123,27 +129,18 @@ export default function CategoriesPage() {
                       {category.isActive ? 'Active' : 'Hidden'}
                     </span>
                 </td>
-
-                {/* Дата создания */}
                 <td className="px-6 py-4 text-zinc-500">
-                  {category.createdAt
-                    ? new Date(category.createdAt).toLocaleDateString('ru-RU')
-                    : '—'}
+                  {category.createdAt ? new Date(category.createdAt).toLocaleDateString('ru-RU') : '—'}
                 </td>
-
-                {/* Действия */}
                 <td className="px-6 py-4">
                   <div className="flex justify-end gap-3">
-                    <button
-                      onClick={() => setSelectedCategory(category)}
-                      className="p-2 text-zinc-500 hover:text-white transition-colors"
-                    >
-                      <Edit3 size={14} />
+                    <button onClick={() => setSelectedCategory(category)}
+                            className="p-2 text-zinc-500 hover:text-white transition-colors">
+                      <Edit3 size={14}/>
                     </button>
-                    <button
-                      onClick={() => categoryDeleting(category.id)}
-                      className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/5 rounded transition-all">
-                      <Trash2 size={14} />
+                    <button onClick={() => categoryDeleting(category.id)}
+                            className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/5 rounded transition-all">
+                      <Trash2 size={14}/>
                     </button>
                   </div>
                 </td>
@@ -157,10 +154,10 @@ export default function CategoriesPage() {
                       {search ? `No matches for "${search}"` : 'Database is empty'}
                     </span>
                   {search && (
-                    <button
-                      onClick={() => setSearch('')}
-                      className="text-[9px] text-zinc-400 underline underline-offset-4 hover:text-white"
-                    >
+                    <button onClick={() => {
+                      setSearch('');
+                      setPage(1);
+                    }} className="text-[9px] text-zinc-400 underline underline-offset-4 hover:text-white">
                       Reset search
                     </button>
                   )}
@@ -170,8 +167,11 @@ export default function CategoriesPage() {
           )}
           </tbody>
         </table>
+
+        <Pagination totalPages={totalPages} page={page} setPage={setPage} />
       </div>
-      <EditCategoryModal />
+
+      <EditCategoryModal/>
     </div>
   );
 }

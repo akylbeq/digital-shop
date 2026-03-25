@@ -6,7 +6,7 @@ import {
   OneToMany,
   JoinColumn,
   CreateDateColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
 } from 'typeorm';
 import { Product } from '../products/product.entity';
 
@@ -33,18 +33,17 @@ export class Category {
   @Column({ type: 'int', nullable: true })
   parentCategoryId: number | null;
 
-  @ManyToOne(() => Category, category => category.children, {
+  @ManyToOne(() => Category, (category) => category.children, {
     nullable: true,
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   })
-
   @JoinColumn({ name: 'parentCategoryId' })
   parent: Category | null;
 
-  @OneToMany(() => Product, product => product.category)
+  @OneToMany(() => Product, (product) => product.category)
   products: Product[];
 
-  @OneToMany(() => Category, category => category.parent)
+  @OneToMany(() => Category, (category) => category.parent)
   children: Category[];
 
   @CreateDateColumn()

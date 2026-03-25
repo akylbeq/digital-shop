@@ -1,29 +1,38 @@
-import { Body, Controller, Post, Get, UseGuards, Patch, Param } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductsService } from './products.service';
 import { TokenAuthGuard } from '../auth/token-auth.guard';
 import { PermitAuthGuard } from '../auth/permit-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Controller('products')
 export class ProductsController {
-  constructor(
-    private readonly productsService: ProductsService,
-  ) {}
+  constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  async createProduct(
-    @Body() product: CreateProductDto,
-  ) {
+  @UseGuards(TokenAuthGuard, PermitAuthGuard)
+  @Roles('admin')
+  async createProduct(@Body() product: CreateProductDto) {
     return await this.productsService.create(product);
   }
 
+  @Get()
   @UseGuards(TokenAuthGuard, PermitAuthGuard)
   @Roles('admin')
-  @Get('admin')
-  async getAllAdminProducts() {
-    return await this.productsService.adminFindAll();
+  async getAllAdminProducts(@Query() query: PaginationDto) {
+    return await this.productsService.adminFindAll(query);
   }
 
   @Patch(':id')
@@ -38,6 +47,13 @@ export class ProductsController {
 
   @Get(':slug')
   async getProductBySlug(@Param('slug') s: string) {
-    return await this.productsService.findBySlug(s)
+    return await this.productsService.findBySlug(s);
+  }
+
+  @Delete(':id')
+  @UseGuards(TokenAuthGuard, PermitAuthGuard)
+  @Roles('admin')
+  async deleteProduct(@Param('id') id: string) {
+    return this.productsService.delete(Number(id));
   }
 }

@@ -9,16 +9,16 @@ export default function Providers({children}: { children: React.ReactNode }) {
 
   useEffect(() => {
     getMe();
-  }, []);
+  }, [getMe]);
 
   if (userLoading) {
     return <Preloader />;
   }
 
   return (
-    <>
+    <div className="bg-[#050505]">
       {children}
       <Toaster richColors/>
-    </>
+    </div>
   );
 }

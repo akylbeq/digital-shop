@@ -1,7 +1,10 @@
-import { IsBoolean, IsBooleanString, IsNumber, IsOptional, IsString } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateCategoryDto {
+  @IsNumber()
+  @IsOptional()
+  id: number;
+
   @IsString()
   @IsOptional()
   name?: string;
@@ -21,7 +24,6 @@ export class UpdateCategoryDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-
 
   @IsOptional()
   image?: string | null;

@@ -1,104 +1,99 @@
-import { Body, Controller, Get, Injectable, Post, Req, Res, Delete, UnauthorizedException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import type {Response, Request} from 'express';
-import { Repository } from 'typeorm';
-import { User } from '../users/user.entity';
+import type { Request, Response } from 'express';
 import { UsersService } from '../users/users.service';
+import { ApiOkResponse } from '@nestjs/swagger';
+import { User } from '../users/user.entity';
+import {
+  getAccessCookieOptions,
+  getRefreshCookieOptions,
+} from './cookie.config';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly userService: UsersService
+    private readonly userService: UsersService,
   ) {}
 
   @Post('login')
-  async auth(@Body() data: LoginDto, @Res({passthrough: true}) res: Response) {
-     const {user, accessToken, refreshToken} = await this.authService.login(data.email, data.password);
-    res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Только HTTPS в продакшене
-      sameSite: 'lax',
-      path: '/',
-      domain: 'localhost',
-      maxAge: 2 * 60 * 60 * 1000, // 2 часа
-    })
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/auth/refresh', // Кука будет слаться только на эндпоинт обновления
-      domain: 'localhost',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
-    })
-     return user
+  async auth(
+    @Body() data: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, accessToken, refreshToken } = await this.authService.login(
+      data.email,
+      data.password,
+    );
+    res.cookie('access_token', accessToken, getAccessCookieOptions());
+    res.cookie('refresh_token', refreshToken, getRefreshCookieOptions());
+    return user;
   }
 
   @Post('register')
-  async registerUser(@Body() data: CreateUserDto, @Res({passthrough: true}) res: Response) {
-    const {user, accessToken, refreshToken} = await this.authService.register(data);
-    res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Только HTTPS в продакшене
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 2 * 60 * 60 * 1000, // 2 часа
-    })
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/auth/refresh', // Кука будет слаться только на эндпоинт обновления
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
-    })
-    return user
+  async registerUser(
+    @Body() data: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, accessToken, refreshToken } =
+      await this.authService.register(data);
+    res.cookie('access_token', accessToken, getAccessCookieOptions());
+    res.cookie('refresh_token', refreshToken, getRefreshCookieOptions());
+    return user;
   }
 
   @Get('me')
+  @ApiOkResponse({ type: User })
   async me(@Req() req: Request) {
-    const token = req.cookies['access_token'];
+    const token = req.cookies['access_token'] as string;
     if (!token) {
       throw new UnauthorizedException('Token not found');
     }
-    const user = await this.authService.me(token)
-    const getUser = await this.userService.findById(user.sub)
-    return {...getUser, password: undefined}
+    const user = this.authService.me(token);
+    const getUser = await this.userService.findById(user.sub);
+    return { ...getUser, password: undefined };
   }
 
   @Post('refresh')
-  async refresh(@Req() req: Request, @Res({passthrough: true}) res: Response) {
-    const token = req.cookies['refresh_token'];
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const token = req.cookies['refresh_token'] as string;
     if (!token) {
       throw new UnauthorizedException('Refresh token not found ' + token);
     }
 
     const { accessToken, user } = await this.authService.refresh(token);
 
-    res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 2 * 60 * 60 * 1000,
-    });
+    res.cookie('access_token', accessToken, getAccessCookieOptions());
 
     return { user };
   }
 
   @Delete('logout')
-  async logout(@Res({ passthrough: true }) res) {
+  logout(@Res({ passthrough: true }) res: Response) {
     res.cookie('access_token', '', {
       httpOnly: true,
       path: '/',
-      expires: new Date(0)
+      expires: new Date(0),
     });
 
     res.cookie('refresh_token', '', {
       httpOnly: true,
       expires: new Date(0),
-      path: '/auth/refresh'
+      path: '/auth/refresh',
     });
 
     return { message: 'Logged out successfully' };

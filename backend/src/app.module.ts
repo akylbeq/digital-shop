@@ -16,6 +16,10 @@ import { ProductsService } from './products/products.service';
 import { Product } from './products/product.entity';
 import { ProductsController } from './products/products.controller';
 import { UploadImageController } from './upload-image/upload-image.controller';
+import { KeysService } from './keys/keys.service';
+import { KeysController } from './keys/keys.controller';
+import { Key } from './keys/key.entity';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -26,16 +30,33 @@ import { UploadImageController } from './upload-image/upload-image.controller';
       username: 'postgres',
       password: 'password',
       database: 'mydb',
-      entities: [User, Category, Product],
+      entities: [User, Category, Product, Key],
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User, Category, Product]),
+    TypeOrmModule.forFeature([User, Category, Product, Key]),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'SECRET',
+      secret: process.env.JWT_SECRET || 'qe',
       signOptions: { expiresIn: '15m' },
     }),
+    ConfigModule.forRoot(),
   ],
-  controllers: [AppController, UsersController, AuthController, CategoriesController, ProductsController, UploadImageController],
-  providers: [AppService, UsersService, AuthService, TokenService, CategoriesService, ProductsService],
+  controllers: [
+    AppController,
+    UsersController,
+    AuthController,
+    CategoriesController,
+    ProductsController,
+    UploadImageController,
+    KeysController,
+  ],
+  providers: [
+    AppService,
+    UsersService,
+    AuthService,
+    TokenService,
+    CategoriesService,
+    ProductsService,
+    KeysService,
+  ],
 })
 export class AppModule {}

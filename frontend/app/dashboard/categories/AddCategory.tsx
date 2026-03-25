@@ -4,12 +4,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox'; // Рекомендую использовать из shadcn
+import { Checkbox } from '@/components/ui/checkbox';
 import { CategoryMutation } from '@/app/types';
-import { useCategoryStore } from '@/app/store/category/category.store';
+import { useCategoriesStore } from '@/app/store/categories/categories.store';
 import { uploadImage } from '@/lib/utils';
 import { X } from 'lucide-react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Image from 'next/image';
+import { getImageUrl } from '@/lib/api';
 
 export default function AddCategory() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,22 +24,38 @@ export default function AddCategory() {
     parentCategoryId: null
   });
   const [text, setText] = useState('');
-  const {createCategory, adminFetchAll, categories} = useCategoryStore();
+  const {
+    createCategory,
+    getCategories,
+    categories
+  } = useCategoriesStore();
 
   const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setCategory((prev) => ({ ...prev, [name]: value }));
+    const {
+      name,
+      value
+    } = e.target;
+    setCategory((prev) => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const onFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const img = await uploadImage(e.target.files[0]);
-      setCategory((prev) => ({ ...prev, image: img || '' }));
+      setCategory((prev) => ({
+        ...prev,
+        image: img || ''
+      }));
     }
   };
 
   const onActiveChange = (checked: boolean) => {
-    setCategory((prev) => ({ ...prev, isActive: checked }));
+    setCategory((prev) => ({
+      ...prev,
+      isActive: checked
+    }));
   };
 
   const onSubmit = async (e: FormEvent) => {
@@ -47,7 +65,7 @@ export default function AddCategory() {
     if (!success) {
       return;
     }
-    await adminFetchAll();
+    await getCategories();
     setCategory({
       name: '',
       description: '',
@@ -55,7 +73,7 @@ export default function AddCategory() {
       isActive: true,
       image: '',
       parentCategoryId: null
-    })
+    });
     setIsOpen(false);
   };
 
@@ -94,21 +112,24 @@ export default function AddCategory() {
 
           <div className="space-y-2">
             <Label htmlFor="slug">Parent category</Label>
-            <Select onOpenChange={(open) => !open && setText('')} onValueChange={(v) => setCategory(prev => ({...prev, parentCategoryId: Number(v) }))}>
+            <Select onOpenChange={(open) => !open && setText('')} onValueChange={(v) => setCategory(prev => ({
+              ...prev,
+              parentCategoryId: Number(v)
+            }))}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selelct category" />
+                <SelectValue placeholder="Selelct category"/>
               </SelectTrigger>
               <SelectContent className="bg-black">
-                  <SelectGroup>
-                    <Input value={text} onChange={(e: ChangeEvent<HTMLInputElement>) => setText(e.target.value)} />
-                    {categories
-                      .filter((c) => c.name.toLowerCase().includes(text.toLowerCase()))
-                      .map((category) => (
-                        <SelectItem value={category.id.toString()} key={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                  </SelectGroup>
+                <SelectGroup>
+                  <Input value={text} onChange={(e: ChangeEvent<HTMLInputElement>) => setText(e.target.value)}/>
+                  {categories
+                    .filter((c) => c.name.toLowerCase().includes(text.toLowerCase()))
+                    .map((category) => (
+                      <SelectItem value={category.id.toString()} key={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
@@ -130,7 +151,7 @@ export default function AddCategory() {
               onCheckedChange={onActiveChange}
             />
             <Label htmlFor="isActive" className="cursor-pointer">
-              {category.isActive ? "Category is Active" : "Category is Hidden"}
+              {category.isActive ? 'Category is Active' : 'Category is Hidden'}
             </Label>
           </div>
 
@@ -143,13 +164,18 @@ export default function AddCategory() {
               onChange={onFileChange}
             />
             {category.image && (
-              <div className="w-full overflow-hidden rounded-lg border bg-gray-50 relative">
-                <img
-                  src={`http://localhost:8000${category.image}`}
+              <div className="w-full h-40 overflow-hidden rounded-lg border bg-gray-50 relative">
+                <Image
+                  src={getImageUrl(category.image)}
                   alt="preview"
-                  className="h-40 w-full object-cover"
+                  fill
+                  className="object-cover"
+                  unoptimized
                 />
-                <X className="absolute top-1 right-1" onClick={() => setCategory(prev => ({...prev, image: ''}))} />
+                <X className="absolute top-1 right-1" onClick={() => setCategory(prev => ({
+                  ...prev,
+                  image: ''
+                }))}/>
               </div>
             )}
           </div>

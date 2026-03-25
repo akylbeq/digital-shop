@@ -1,29 +1,40 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { Product } from './product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
-  ) {
-  }
+  ) {}
 
   async create(p: CreateProductDto): Promise<Product> {
+    const exist = await this.productRepo.findOne({ where: { name: p.name } });
+    if (exist) {
+      throw new ConflictException('Product already exists');
+    }
     try {
-      const exist = await this.productRepo.findOne({where: {name: p.name}});
-      if (exist) {
-        throw new ConflictException('Product already exists');
-      }
       const product = this.productRepo.create(p);
       return await this.productRepo.save(product);
     } catch (e) {
-      if (e.code === '23503') {
-        throw new NotFoundException(`Category with ID ${p.categoryId} does not exist`);
+      if (
+        typeof e === 'object' &&
+        e !== null &&
+        'code' in e &&
+        (e as { code: string }).code === '23503'
+      ) {
+        throw new NotFoundException(
+          `Category with ID ${p.categoryId} does not exist`,
+        );
       }
       throw e;
     }
@@ -36,7 +47,7 @@ export class ProductsService {
       throw new NotFoundException(`Product with id "${id}" not found`);
     }
 
-    const product = await this.productRepo.findOne({where: {id}});
+    const product = await this.productRepo.findOne({ where: { id } });
 
     if (!product) {
       throw new NotFoundException(`Product with id "${id}" not found`);
@@ -53,15 +64,24 @@ export class ProductsService {
     return;
   }
 
-  async adminFindAll(): Promise<Product[]> {
-    return await this.productRepo.find({
-        order: { createdAt: 'DESC' },
+  async adminFindAll({ page, limit, name }: PaginationDto) {
+    const [data, total] = await this.productRepo.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      where: name ? { name: ILike(`%${name}%`) } : {},
+      order: { id: 'DESC' },
     });
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
   }
 
   async findBySlug(slug: string): Promise<Product> {
     const product = await this.productRepo.findOne({
-      where: {slug},
+      where: { slug },
       relations: { category: true },
       select: {
         id: true,
@@ -79,8 +99,8 @@ export class ProductsService {
           id: true,
           name: true,
           slug: true,
-        }
-      }
+        },
+      },
     });
     if (!product) {
       throw new NotFoundException(`Product with id "${slug}" not found`);

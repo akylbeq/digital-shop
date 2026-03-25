@@ -1,57 +1,70 @@
 'use client';
-import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useCategoryStore } from '@/app/store/category/category.store';
-import { CategoryMutation } from '@/app/types';
+import { useCategoriesStore } from '@/app/store/categories/categories.store';
+import { CategoryEditing } from '@/app/types';
 import { uploadImage } from '@/lib/utils';
 import { X } from 'lucide-react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Image from 'next/image';
+import { getImageUrl } from '@/lib/api';
 
 export default function EditCategoryModal() {
-  const { selectedCategory, setSelectedCategory, updateCategory, categories } = useCategoryStore();
-  const [formData, setFormData] = useState<CategoryMutation | null>(null);
+  const {
+    selectedCategory,
+    setSelectedCategory,
+    updateCategory,
+    categories
+  } = useCategoriesStore();
+  const [formData, setFormData] = useState<CategoryEditing | null>(null);
   const [text, setText] = useState('');
 
-  useEffect(() => {
-    if (selectedCategory) {
-      setFormData({
-        name: selectedCategory.name,
-        description: selectedCategory.description || '',
-        slug: selectedCategory.slug,
-        isActive: selectedCategory.isActive,
-        image: selectedCategory.image,
-        parentCategoryId: selectedCategory.parentCategoryId
-      });
-    } else {
-      setFormData(null);
-    }
-  }, [selectedCategory]);
+  if (selectedCategory && (!formData || formData.id !== selectedCategory.id)) {
+    setFormData({
+      name: selectedCategory.name,
+      description: selectedCategory.description || '',
+      slug: selectedCategory.slug,
+      isActive: selectedCategory.isActive,
+      image: selectedCategory.image,
+      parentCategoryId: selectedCategory.parentCategoryId,
+      id: selectedCategory.id,
+    });
+  }
 
   if (!formData || !selectedCategory) return null;
 
   const close = () => setSelectedCategory(null);
 
   const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => prev ? ({ ...prev, [name]: value }) : null);
+    const {
+      name,
+      value
+    } = e.target;
+    setFormData((prev) => prev ? ({
+      ...prev,
+      [name]: value
+    }) : null);
   };
 
   const onFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const img = await uploadImage(e.target.files[0]);
       if (img) {
-        setFormData((prev) => prev ? ({ ...prev, image: img }) : null);
+        setFormData((prev) => prev ? ({
+          ...prev,
+          image: img
+        }) : null);
       }
     }
   };
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const success = await updateCategory(selectedCategory.id, formData);
+    const success = await updateCategory(formData);
     if (success) close();
   };
 
@@ -70,7 +83,7 @@ export default function EditCategoryModal() {
             <Input
               id="name"
               name="name"
-              value={formData.name} // Используем formData, а не category
+              value={formData.name} // Используем formData, а не categories
               onChange={onInputChange}
               className="bg-zinc-900 border-white/5 h-9"
               required
@@ -94,15 +107,19 @@ export default function EditCategoryModal() {
               onOpenChange={(open) => {
                 if (!open) setText('');
               }}
-              onValueChange={(v) => setFormData(prev => prev ? ({...prev, parentCategoryId: Number(v)}) : null)}
-              value={formData.parentCategoryId?.toString() ?? 'Select category'}
+              onValueChange={(v) => setFormData(prev => prev ? ({
+                ...prev,
+                parentCategoryId: Number(v)
+              }) : null)}
+              value={formData.parentCategoryId?.toString() ?? 'Select categories'}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selelct category" />
+                <SelectValue placeholder="Selelct category"/>
               </SelectTrigger>
               <SelectContent className="bg-black">
                 <SelectGroup>
-                  <Input placeholder="Search" value={text} onChange={(e: ChangeEvent<HTMLInputElement>) => setText(e.target.value)} />
+                  <Input placeholder="Search" value={text}
+                         onChange={(e: ChangeEvent<HTMLInputElement>) => setText(e.target.value)}/>
                   {categories
                     .filter((c) => c.name.toLowerCase().includes(text.toLowerCase()))
                     .map((category) => (
@@ -131,11 +148,14 @@ export default function EditCategoryModal() {
               id="isActive"
               checked={formData.isActive}
               onCheckedChange={(checked) =>
-                setFormData(prev => prev ? ({ ...prev, isActive: !!checked }) : null)
+                setFormData(prev => prev ? ({
+                  ...prev,
+                  isActive: !!checked
+                }) : null)
               }
             />
             <Label htmlFor="isActive" className="cursor-pointer uppercase text-zinc-400">
-              {formData.isActive ? "Category is Active" : "Category is Hidden"}
+              {formData.isActive ? 'Category is Active' : 'Category is Hidden'}
             </Label>
           </div>
 
@@ -148,13 +168,18 @@ export default function EditCategoryModal() {
               onChange={onFileChange}
             />
             {formData.image && (
-              <div className="w-full overflow-hidden rounded-lg border bg-gray-50 relative">
-                <img
-                  src={`http://localhost:8000${formData.image}`}
+              <div className="w-full h-40 overflow-hidden rounded-lg border bg-gray-50 relative">
+                <Image
+                  src={getImageUrl(formData.image)}
                   alt="preview"
-                  className="h-40 w-full object-cover"
+                  fill
+                  className="object-cover"
+                  unoptimized
                 />
-                <X className="absolute top-1 right-1" onClick={() => setFormData(prev => prev ? ({...prev, image: ''}) : null)} />
+                <X className="absolute top-1 right-1" onClick={() => setFormData(prev => prev ? ({
+                  ...prev,
+                  image: ''
+                }) : null)}/>
               </div>
             )}
           </div>

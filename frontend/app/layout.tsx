@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Exploit - Digital Shop',
+  title: 'ZSoft - Digital Shop',
   description: 'Магазин цифровых товаров. Игры, программы, подписки. Мгновенная доставка 24/7.',
 };
 

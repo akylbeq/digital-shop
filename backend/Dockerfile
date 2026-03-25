@@ -20,7 +20,5 @@ RUN npm ci --omit=dev
 
 COPY --from=builder /app/dist ./dist
 
-COPY --from=builder /app/public ./public
-
 EXPOSE 8000
 CMD ["node", "dist/main"]

@@ -1,5 +1,5 @@
 'use client';
-import { ChangeEvent, FormEvent, ReactNode, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, ReactNode, useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useCategoriesStore } from '@/app/store/categories/categories.store';
 import { ProductEditing } from '@/app/types';
-import { uploadImage } from '@/lib/utils';
+import { icons, uploadImage } from '@/lib/utils';
 import { X } from 'lucide-react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useProductsStore } from '@/app/store/products/products.store';
@@ -16,26 +16,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { getImageUrl } from '@/lib/api';
+import { applyColor } from '@/lib/utils';
 
-const EMPTY_PRICE = {
-  duration: '',
-  price: ''
-};
-const EMPTY_FEATURE = {
-  title: '',
-  icon: '',
-  items: ''
-};
-const EMPTY_BADGE = {
-  icon: '',
-  title: '',
-  color: ''
-};
+const EMPTY_PRICE = { duration: '', price: '' };
+const EMPTY_FEATURE = { title: '', icon: '', items: '' };
+const EMPTY_BADGE = { icon: '', title: '', color: '' };
 
-function Section({
-                   label,
-                   children
-                 }: { label: string; children: ReactNode }) {
+function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="space-y-2">
       <Label className="text-xs uppercase tracking-widest text-white/40">{label}</Label>
@@ -44,23 +31,55 @@ function Section({
   );
 }
 
-function SvgPreview({html}: { html: string }) {
+function SvgPreview({ html }: { html: string }) {
   if (!html) return null;
   return (
-    <div className="w-10 h-10 flex items-center justify-center rounded-lg border border-white/10 bg-white/5 shrink-0"
-         dangerouslySetInnerHTML={{__html: html}}/>
+    <div
+      className="w-10 h-10 flex items-center justify-center rounded-lg border border-white/10 bg-white/5 shrink-0"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
+function ColorPicker({ color, onChange, inputRef }: {
+  color: string;
+  onChange: (color: string) => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  return (
+    <div className="relative w-10 h-10 shrink-0">
+      <div
+        className="w-10 h-10 rounded-lg border border-white/10 cursor-pointer transition-transform hover:scale-105"
+        style={{ background: color }}
+        onClick={() => inputRef.current?.click()}
+      />
+      <input
+        ref={inputRef}
+        type="color"
+        value={color}
+        onChange={e => onChange(e.target.value)}
+        className="absolute inset-0 opacity-0 w-0 h-0" // Скрываем полностью
+      />
+    </div>
   );
 }
 
 export default function EditProduct() {
-  const {categories, getCategories} = useCategoriesStore();
-  const {
-    selectedProduct,
-    setSelectProduct,
-    update
-  } = useProductsStore();
+  const { categories, getCategories } = useCategoriesStore();
+  const { selectedProduct, setSelectProduct, update } = useProductsStore();
 
   const [formData, setFormData] = useState<ProductEditing | null>(null);
+  const [categorySearch, setCategorySearch] = useState('');
+  const [priceDraft, setPriceDraft] = useState(EMPTY_PRICE);
+  const [featureDraft, setFeatureDraft] = useState(EMPTY_FEATURE);
+  const [badgesDraft, setBadgesDraft] = useState(EMPTY_BADGE);
+
+  const featureColorRef = useRef<HTMLInputElement>(null);
+  const badgeColorRef = useRef<HTMLInputElement>(null);
+  const [featureIconColor, setFeatureIconColor] = useState('#ffffff');
+  const [featureRawIcon, setFeatureRawIcon] = useState('');
+  const [badgeIconColor, setBadgeIconColor] = useState('#ffffff');
+  const [badgeRawIcon, setBadgeRawIcon] = useState('');
 
   if (selectedProduct && (!formData || formData.id !== selectedProduct.id)) {
     setFormData({
@@ -78,40 +97,30 @@ export default function EditProduct() {
     });
   }
 
-  const [categorySearch, setCategorySearch] = useState('');
-  const [priceDraft, setPriceDraft] = useState(EMPTY_PRICE);
-  const [featureDraft, setFeatureDraft] = useState(EMPTY_FEATURE);
-  const [badgesDraft, setBadgesDraft] = useState(EMPTY_BADGE);
-
   const close = () => {
     setSelectProduct(null);
     setCategorySearch('');
     setPriceDraft(EMPTY_PRICE);
     setFeatureDraft(EMPTY_FEATURE);
     setBadgesDraft(EMPTY_BADGE);
+    setFeatureRawIcon('');
+    setFeatureIconColor('#ffffff');
+    setBadgeRawIcon('');
+    setBadgeIconColor('#ffffff');
   };
 
   const onField = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setFormData(p => p ? {
-      ...p,
-      [e.target.name]: e.target.value
-    } : null);
+    setFormData(p => p ? { ...p, [e.target.name]: e.target.value } : null);
 
-  const onFile = async (e: ChangeEvent<HTMLInputElement>, type: string) => {
+  const onFile = async (e: ChangeEvent<HTMLInputElement>, type: 'image' | 'imagesAlbum') => {
     const file = e.target.files?.[0];
     if (!file) return;
     const img = await uploadImage(file);
     if (!img) return;
     setFormData(p => p
       ? type === 'image'
-        ? {
-          ...p,
-          image: img
-        }
-        : {
-          ...p,
-          imagesAlbum: [...p.imagesAlbum, img]
-        }
+        ? { ...p, image: img }
+        : { ...p, imagesAlbum: [...p.imagesAlbum, img] }
       : null
     );
   };
@@ -124,18 +133,9 @@ export default function EditProduct() {
       if (!p) return p;
       const idx = p.prices.findIndex(x => x.duration === duration);
       const next = idx >= 0
-        ? p.prices.map((x, i) => i === idx ? {
-          duration,
-          price
-        } : x)
-        : [...p.prices, {
-          duration,
-          price
-        }];
-      return {
-        ...p,
-        prices: next
-      };
+        ? p.prices.map((x, i) => i === idx ? { duration, price } : x)
+        : [...p.prices, { duration, price }];
+      return { ...p, prices: next };
     });
     setPriceDraft(EMPTY_PRICE);
   };
@@ -146,23 +146,20 @@ export default function EditProduct() {
     const items = featureDraft.items.split('\n').map(s => s.trim()).filter(Boolean);
     setFormData(p => p ? {
       ...p,
-      features: [...(p.features || []), {
-        title: featureDraft.title,
-        icon: featureDraft.icon,
-        items
-      }]
+      features: [...(p.features || []), { title: featureDraft.title, icon: featureDraft.icon, items }]
     } : null);
     setFeatureDraft(EMPTY_FEATURE);
+    setFeatureRawIcon('');
+    setFeatureIconColor('#ffffff');
   };
 
   const addBadge = () => {
     if (!badgesDraft.title || !badgesDraft.icon || !badgesDraft.color)
       return toast.error('All badge fields are required');
-    setFormData(p => p ? {
-      ...p,
-      badges: [...(p.badges || []), badgesDraft]
-    } : null);
+    setFormData(p => p ? { ...p, badges: [...(p.badges || []), badgesDraft] } : null);
     setBadgesDraft(EMPTY_BADGE);
+    setBadgeRawIcon('');
+    setBadgeIconColor('#ffffff');
   };
 
   const onSubmit = async (e: FormEvent) => {
@@ -175,9 +172,7 @@ export default function EditProduct() {
   const hasSelectedProduct = !!selectedProduct;
 
   useEffect(() => {
-    if (hasSelectedProduct) {
-      void getCategories(1, 10, categorySearch)
-    }
+    if (hasSelectedProduct) void getCategories(1, 10, categorySearch);
   }, [getCategories, categorySearch, hasSelectedProduct]);
 
   if (!formData || !selectedProduct) return null;
@@ -195,46 +190,48 @@ export default function EditProduct() {
           <form onSubmit={onSubmit} className="space-y-5 pt-4 pb-2">
 
             <Section label="Name">
-              <Input name="name" value={formData.name} onChange={onField} required/>
+              <Input name="name" value={formData.name} onChange={onField} required />
             </Section>
 
             <Section label="Slug">
-              <Input name="slug" value={formData.slug} onChange={onField}/>
+              <Input name="slug" value={formData.slug} onChange={onField} />
             </Section>
 
             <Section label="Category">
               <Select
                 onOpenChange={open => !open && setCategorySearch('')}
-                onValueChange={v => setFormData(p => p ? {
-                  ...p,
-                  categoryId: Number(v)
-                } : null)}
+                onValueChange={v => setFormData(p => p ? { ...p, categoryId: Number(v) } : null)}
                 value={formData.categoryId ? String(formData.categoryId) : undefined}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select category"/>
+                  <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent className="bg-black">
                   <SelectGroup>
-                    <Input placeholder="Search..." value={categorySearch}
-                           onChange={e => setCategorySearch(e.target.value)} className="mb-1"/>
-                    {categories
-                      .map(c => <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>)}
+                    <Input
+                      placeholder="Search..."
+                      value={categorySearch}
+                      onChange={e => setCategorySearch(e.target.value)}
+                      className="mb-1"
+                    />
+                    {categories.map(c => (
+                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
             </Section>
 
             <Section label="Description">
-              <Textarea name="description" value={formData.description} onChange={onField} rows={3}/>
+              <Textarea name="description" value={formData.description} onChange={onField} rows={3} />
             </Section>
 
             <div className="flex items-center gap-2 py-1">
-              <Checkbox id="isActive" checked={formData.isActive}
-                        onCheckedChange={v => setFormData(p => p ? {
-                          ...p,
-                          isActive: Boolean(v)
-                        } : null)}/>
+              <Checkbox
+                id="isActive"
+                checked={formData.isActive}
+                onCheckedChange={v => setFormData(p => p ? { ...p, isActive: Boolean(v) } : null)}
+              />
               <Label htmlFor="isActive" className="cursor-pointer text-sm text-white/60">
                 {formData.isActive ? 'Active' : 'Hidden'}
               </Label>
@@ -243,39 +240,28 @@ export default function EditProduct() {
             <Section label="Prices">
               <div className="flex gap-2">
                 <Input placeholder="Duration" value={priceDraft.duration}
-                       onChange={e => setPriceDraft(p => ({
-                         ...p,
-                         duration: e.target.value
-                       }))}/>
+                       onChange={e => setPriceDraft(p => ({ ...p, duration: e.target.value }))} />
                 <Input placeholder="Price" inputMode="numeric" value={priceDraft.price}
-                       onChange={e => setPriceDraft(p => ({
-                         ...p,
-                         price: e.target.value
-                       }))}/>
+                       onChange={e => setPriceDraft(p => ({ ...p, price: e.target.value }))} />
                 <Button type="button" variant="outline" onClick={addPrice}>Add</Button>
               </div>
               {formData.prices.length > 0 && (
                 <div className="space-y-1.5 mt-2">
-                  {formData.prices
-                    .slice().sort((a, b) => a.duration.localeCompare(b.duration))
-                    .map(p => (
-                      <div key={p.duration}
-                           className="flex items-center justify-between rounded-lg border border-white/10 px-3 py-2 text-sm">
-                        <span>
-                          <span className="text-white/60">{p.duration}</span>
-                          <span className="mx-2 text-white/20">—</span>
-                          <span className="font-medium">${p.price}</span>
-                        </span>
-                        <button type="button"
-                                onClick={() => setFormData(prev => prev ? {
-                                  ...prev,
-                                  prices: prev.prices.filter(x => x.duration !== p.duration)
-                                } : null)}
-                                className="text-white/30 hover:text-red-400 transition-colors">
-                          <X size={14}/>
-                        </button>
-                      </div>
-                    ))}
+                  {formData.prices.slice().sort((a, b) => a.duration.localeCompare(b.duration)).map(p => (
+                    <div key={p.duration}
+                         className="flex items-center justify-between rounded-lg border border-white/10 px-3 py-2 text-sm">
+                      <span>
+                        <span className="text-white/60">{p.duration}</span>
+                        <span className="mx-2 text-white/20">—</span>
+                        <span className="font-medium">${p.price}</span>
+                      </span>
+                      <button type="button"
+                              onClick={() => setFormData(prev => prev ? { ...prev, prices: prev.prices.filter(x => x.duration !== p.duration) } : null)}
+                              className="text-white/30 hover:text-red-400 transition-colors">
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </Section>
@@ -283,25 +269,42 @@ export default function EditProduct() {
             <Section label="Features">
               <div className="rounded-xl border border-white/10 bg-[#0b0b0b] p-4 space-y-3">
                 <div className="flex gap-2">
-                  <Input placeholder="SVG icon" value={featureDraft.icon}
-                         onChange={e => setFeatureDraft(p => ({
-                           ...p,
-                           icon: e.target.value
-                         }))} className="flex-1"/>
-                  <SvgPreview html={featureDraft.icon}/>
+                  <Input
+                    placeholder="SVG icon"
+                    value={featureDraft.icon}
+                    onChange={e => setFeatureDraft(p => ({ ...p, icon: e.target.value }))}
+                    className="flex-1"
+                  />
+                  <SvgPreview html={featureDraft.icon} />
+                  <ColorPicker
+                    color={featureIconColor}
+                    inputRef={featureColorRef}
+                    onChange={color => {
+                      setFeatureIconColor(color);
+                      setFeatureDraft(p => ({ ...p, icon: applyColor(featureRawIcon || p.icon, color) }));
+                    }}
+                  />
                 </div>
+                <Select onValueChange={v => {
+                  setFeatureRawIcon(v);
+                  setFeatureDraft(p => ({ ...p, icon: applyColor(v, featureIconColor) }));
+                }}>
+                  <SelectTrigger className="w-full">Select icon</SelectTrigger>
+                  <SelectContent className="h-50 bg-black">
+                    {icons.map((i, d) => (
+                      <SelectItem className="flex items-center gap-2" value={i.svg} key={d}>
+                        <span dangerouslySetInnerHTML={{ __html: i.svg }} />
+                        <span>{i.name}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Input placeholder="Section title (e.g. Recoil)" value={featureDraft.title}
-                       onChange={e => setFeatureDraft(p => ({
-                         ...p,
-                         title: e.target.value
-                       }))}/>
+                       onChange={e => setFeatureDraft(p => ({ ...p, title: e.target.value }))} />
                 <Textarea
                   placeholder={'Each item on a new line:\nDisable Recoil (ON/OFF)\nMode - Toggle / Hold'}
                   value={featureDraft.items}
-                  onChange={e => setFeatureDraft(p => ({
-                    ...p,
-                    items: e.target.value
-                  }))}
+                  onChange={e => setFeatureDraft(p => ({ ...p, items: e.target.value }))}
                   rows={4}
                 />
                 <Button className="w-full" variant="outline" type="button" onClick={addFeature}>
@@ -313,18 +316,16 @@ export default function EditProduct() {
                 <div key={fi} className="rounded-xl border border-white/10 bg-[#0b0b0b] p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      {f.icon && <div className="w-5 h-5" dangerouslySetInnerHTML={{__html: f.icon}}/>}
+                      {f.icon && <div className="w-5 h-5" dangerouslySetInnerHTML={{ __html: f.icon }} />}
                       <span className="text-sm font-medium">{f.title}</span>
-                      <span
-                        className="text-[10px] text-white/30 border border-white/10 rounded-full px-2 py-0.5">{f.items.length} items</span>
+                      <span className="text-[10px] text-white/30 border border-white/10 rounded-full px-2 py-0.5">
+                        {f.items.length} items
+                      </span>
                     </div>
                     <button type="button"
-                            onClick={() => setFormData(p => p ? {
-                              ...p,
-                              features: p.features.filter((_, i) => i !== fi)
-                            } : null)}
+                            onClick={() => setFormData(p => p ? { ...p, features: p.features.filter((_, i) => i !== fi) } : null)}
                             className="text-white/25 hover:text-red-400 transition-colors">
-                      <X size={16}/>
+                      <X size={16} />
                     </button>
                   </div>
                   <ul className="space-y-1">
@@ -343,32 +344,47 @@ export default function EditProduct() {
               <div className="rounded-xl border border-white/10 bg-[#0b0b0b] p-4 space-y-3">
                 <div className="flex gap-2">
                   <Input placeholder="SVG icon" value={badgesDraft.icon}
-                         onChange={e => setBadgesDraft(p => ({
-                           ...p,
-                           icon: e.target.value
-                         }))} className="flex-1"/>
-                  <SvgPreview html={badgesDraft.icon}/>
+                         onChange={e => setBadgesDraft(p => ({ ...p, icon: e.target.value }))}
+                         className="flex-1" />
+                  <SvgPreview html={badgesDraft.icon} />
+                  <ColorPicker
+                    color={badgeIconColor}
+                    inputRef={badgeColorRef}
+                    onChange={color => {
+                      setBadgeIconColor(color);
+                      setBadgesDraft(p => ({ ...p, icon: applyColor(badgeRawIcon || p.icon, color) }));
+                    }}
+                  />
                 </div>
+                <Select onValueChange={v => {
+                  setBadgeRawIcon(v);
+                  setBadgesDraft(p => ({ ...p, icon: applyColor(v, badgeIconColor) }));
+                }}>
+                  <SelectTrigger className="w-full">Select icon</SelectTrigger>
+                  <SelectContent className="h-50 bg-black">
+                    {icons.map((i, d) => (
+                      <SelectItem className="flex items-center gap-2" value={i.svg} key={d}>
+                        <span dangerouslySetInnerHTML={{ __html: i.svg }} />
+                        <span>{i.name}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Input placeholder="Title (e.g. Undetected)" value={badgesDraft.title}
-                       onChange={e => setBadgesDraft(p => ({
-                         ...p,
-                         title: e.target.value
-                       }))}/>
+                       onChange={e => setBadgesDraft(p => ({ ...p, title: e.target.value }))} />
                 <div className="flex gap-2">
                   <Input placeholder="Color (#02E083)" value={badgesDraft.color}
-                         onChange={e => setBadgesDraft(p => ({
-                           ...p,
-                           color: e.target.value
-                         }))} className="flex-1"/>
+                         onChange={e => setBadgesDraft(p => ({ ...p, color: e.target.value }))}
+                         className="flex-1" />
                   {badgesDraft.color && (
                     <div className="w-10 h-10 rounded-lg border border-white/10 shrink-0"
-                         style={{background: badgesDraft.color}}/>
+                         style={{ background: badgesDraft.color }} />
                   )}
                 </div>
                 {(badgesDraft.title || badgesDraft.icon) && (
                   <div className="flex items-center gap-1.5 text-sm w-fit"
-                       style={{color: badgesDraft.color || 'rgba(255,255,255,0.6)'}}>
-                    {badgesDraft.icon && <span dangerouslySetInnerHTML={{__html: badgesDraft.icon}}/>}
+                       style={{ color: badgesDraft.color || 'rgba(255,255,255,0.6)' }}>
+                    {badgesDraft.icon && <span dangerouslySetInnerHTML={{ __html: badgesDraft.icon }} />}
                     <span>{badgesDraft.title}</span>
                   </div>
                 )}
@@ -382,14 +398,11 @@ export default function EditProduct() {
                   {(formData.badges || []).map((b, i) => (
                     <div key={b.title + i}
                          className="flex items-center gap-1.5 text-sm group cursor-pointer"
-                         style={{color: b.color}}
-                         onClick={() => setFormData(p => p ? {
-                           ...p,
-                           badges: p.badges.filter((_, bi) => bi !== i)
-                         } : null)}>
-                      <span dangerouslySetInnerHTML={{__html: b.icon}}/>
+                         style={{ color: b.color }}
+                         onClick={() => setFormData(p => p ? { ...p, badges: p.badges.filter((_, bi) => bi !== i) } : null)}>
+                      <span dangerouslySetInnerHTML={{ __html: b.icon }} />
                       <span>{b.title}</span>
-                      <X size={12} className="opacity-0 group-hover:opacity-60 transition-opacity"/>
+                      <X size={12} className="opacity-0 group-hover:opacity-60 transition-opacity" />
                     </div>
                   ))}
                 </div>
@@ -397,48 +410,30 @@ export default function EditProduct() {
             </Section>
 
             <Section label="Cover image">
-              <Input type="file" accept="image/*" onChange={(e) => onFile(e, 'image')}/>
+              <Input type="file" accept="image/*" onChange={e => onFile(e, 'image')} />
               {formData.image && (
                 <div className="relative h-40 rounded-xl overflow-hidden border border-white/10">
-                  <Image
-                    src={getImageUrl(formData.image)}
-                    alt="preview"
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
+                  <Image src={getImageUrl(formData.image)} alt="preview" fill className="object-cover" unoptimized />
                   <button type="button"
-                          onClick={() => setFormData(p => p ? {
-                            ...p,
-                            image: ''
-                          } : null)}
+                          onClick={() => setFormData(p => p ? { ...p, image: '' } : null)}
                           className="absolute top-2 right-2 bg-black/60 rounded-lg p-1 hover:bg-black/80 transition">
-                    <X size={14}/>
+                    <X size={14} />
                   </button>
                 </div>
               )}
             </Section>
 
             <Section label="Images album">
-              <Input type="file" accept="image/*" onChange={e => onFile(e, 'imagesAlbum')}/>
+              <Input type="file" accept="image/*" onChange={e => onFile(e, 'imagesAlbum')} />
               {formData.imagesAlbum.length > 0 && (
                 <div className="space-y-2">
                   {formData.imagesAlbum.map(img => (
                     <div key={img} className="relative h-32 rounded-xl overflow-hidden border border-white/10">
-                      <Image
-                        src={getImageUrl(img)}
-                        alt={img}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
+                      <Image src={getImageUrl(img)} alt={img} fill className="object-cover" unoptimized />
                       <button type="button"
-                              onClick={() => setFormData(p => p ? {
-                                ...p,
-                                imagesAlbum: p.imagesAlbum.filter(x => x !== img)
-                              } : null)}
+                              onClick={() => setFormData(p => p ? { ...p, imagesAlbum: p.imagesAlbum.filter(x => x !== img) } : null)}
                               className="absolute top-2 right-2 bg-black/60 rounded-lg p-1 hover:bg-black/80 transition">
-                        <X size={14}/>
+                        <X size={14} />
                       </button>
                     </div>
                   ))}

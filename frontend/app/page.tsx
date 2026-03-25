@@ -20,7 +20,7 @@ export default async function Home() {
           </div>
 
           <h1 className="text-[18vw] font-black leading-none tracking-tighter uppercase italic text-white mix-blend-difference select-none">
-            eprime
+            zsoft
           </h1>
 
           <p className="mt-6 text-[10px] font-mono text-white/20 uppercase tracking-[0.2em]">

@@ -22,7 +22,7 @@ export default function Header() {
           </span>
 
             <span className="px-2 text-base sm:text-lg tracking-[0.2em] uppercase font-medium text-white">
-              Exploit
+              ZSoft
           <span
             className="ml-1 inline-block w-2 h-4 bg-white animate-[pulse_1s_infinite] align-middle group-hover:bg-red-600 transition-colors"/>
           </span>

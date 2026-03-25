@@ -6,7 +6,6 @@ async function fetchData<T>(patch: string, fallback: T): Promise<T> {
   try {
   const res = await fetch(API_URL + patch, {
     next: {revalidate: 3600},
-    cache: 'no-store',
   })
   if (!res.ok) {
     return fallback;

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent, ReactNode } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ProductMutation } from '@/app/types';
 import { useCategoriesStore } from '@/app/store/categories/categories.store';
-import { uploadImage } from '@/lib/utils';
+import { icons, uploadImage } from '@/lib/utils';
 import { X } from 'lucide-react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useProductsStore } from '@/app/store/products/products.store';
@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { getImageUrl } from '@/lib/api';
+import { applyColor } from '@/lib/utils';
 
 const EMPTY_PRODUCT: ProductMutation = {
   name: '',
@@ -74,6 +75,15 @@ export default function AddProduct() {
   const [priceDraft, setPriceDraft] = useState(EMPTY_PRICE);
   const [featureDraft, setFeatureDraft] = useState(EMPTY_FEATURE);
   const [badgesDraft, setBadgesDraft] = useState(EMPTY_BADGE);
+
+  const featureColorRef = useRef<HTMLInputElement>(null);
+  const badgeColorRef = useRef<HTMLInputElement>(null);
+
+  const [featureIconColor, setFeatureIconColor] = useState('#ffffff');
+  const [featureRawIcon, setFeatureRawIcon] = useState('');
+
+  const [badgeIconColor, setBadgeIconColor] = useState('#ffffff');
+  const [badgeRawIcon, setBadgeRawIcon] = useState('');
 
   const {
     categories,
@@ -140,6 +150,8 @@ export default function AddProduct() {
       }]
     }));
     setFeatureDraft(EMPTY_FEATURE);
+    setFeatureRawIcon('');
+    setFeatureIconColor('#ffffff');
   };
 
   const addBadge = () => {
@@ -150,6 +162,8 @@ export default function AddProduct() {
       badges: [...p.badges, badgesDraft]
     }));
     setBadgesDraft(EMPTY_BADGE);
+    setBadgeRawIcon('');
+    setBadgeIconColor('#ffffff');
   };
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -170,6 +184,10 @@ export default function AddProduct() {
       setPriceDraft(EMPTY_PRICE);
       setFeatureDraft(EMPTY_FEATURE);
       setBadgesDraft(EMPTY_BADGE);
+      setFeatureRawIcon('');
+      setFeatureIconColor('#ffffff');
+      setBadgeRawIcon('');
+      setBadgeIconColor('#ffffff');
     }
   };
 
@@ -224,7 +242,6 @@ export default function AddProduct() {
                 </SelectContent>
               </Select>
             </Section>
-
             <Section label="Description">
               <Textarea name="description" value={product.description} onChange={onField} rows={3}/>
             </Section>
@@ -283,13 +300,64 @@ export default function AddProduct() {
             <Section label="Features">
               <div className="rounded-xl border border-white/10 bg-[#0b0b0b] p-4 space-y-3">
                 <div className="flex gap-2">
-                  <Input placeholder="SVG icon" value={featureDraft.icon}
-                         onChange={e => setFeatureDraft(p => ({
-                           ...p,
-                           icon: e.target.value
-                         }))} className="flex-1"/>
-                  <SvgPreview html={featureDraft.icon}/>
+                  <Input
+                    placeholder="SVG icon"
+                    value={featureDraft.icon}
+                    onChange={e => setFeatureDraft(p => ({
+                      ...p,
+                      icon: e.target.value
+                    }))}
+                    className="flex-1"
+                  />
+
+                  {featureDraft.icon && (
+                    <div
+                      className="w-10 h-10 flex items-center justify-center rounded-lg border border-white/10 bg-white/5 shrink-0"
+                      dangerouslySetInnerHTML={{__html: featureDraft.icon}}
+                    />
+                  )}
+
+                  <div className="relative w-10 h-10 shrink-0">
+                    <div
+                      className="w-10 h-10 rounded-lg border border-white/10 cursor-pointer"
+                      style={{background: featureIconColor}}
+                      onClick={() => featureColorRef.current?.click()}
+                    />
+                    <input
+                      ref={featureColorRef}
+                      type="color"
+                      value={featureIconColor}
+                      onChange={e => {
+                        const color = e.target.value;
+                        setFeatureIconColor(color);
+                        setFeatureDraft(p => ({
+                          ...p,
+                          icon: applyColor((featureRawIcon || p.icon), color)
+                        }));
+                      }}
+                      className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                    />
+                  </div>
                 </div>
+                <Select onValueChange={(v) => {
+                  setFeatureRawIcon(v);
+                  setFeatureDraft(p => ({
+                    ...p,
+                    icon: applyColor(v, featureIconColor)
+                  }));
+                }}>
+                  <SelectTrigger className="w-full">Select icon</SelectTrigger>
+                  <SelectContent className="h-50 bg-black">
+                    {
+                      icons.map((i, d) => (
+                        <SelectItem className="flex items-center gap-2" value={i.svg} key={d}>
+                          <span dangerouslySetInnerHTML={{__html: i.svg}}></span>
+                          <span>{i.name}</span>
+                        </SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
                 <Input placeholder="Section title (e.g. Recoil)" value={featureDraft.title}
                        onChange={e => setFeatureDraft(p => ({
                          ...p,
@@ -347,7 +415,48 @@ export default function AddProduct() {
                            icon: e.target.value
                          }))} className="flex-1"/>
                   <SvgPreview html={badgesDraft.icon}/>
+                  <div className="relative w-10 h-10 shrink-0">
+                    <div
+                      className="w-10 h-10 rounded-lg border border-white/10 cursor-pointer"
+                      style={{background: badgeIconColor}}
+                      onClick={() => badgeColorRef.current?.click()}
+                    />
+                    <input
+                      ref={badgeColorRef}
+                      type="color"
+                      value={badgeIconColor}
+                      onChange={e => {
+                        const color = e.target.value;
+                        setBadgeIconColor(color);
+                        setBadgesDraft(p => ({
+                          ...p,
+                          icon: applyColor((badgeRawIcon || p.icon), color),
+                          color
+                        }));
+                      }}
+                      className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                    />
+                  </div>
                 </div>
+                <Select onValueChange={(v) => {
+                  setBadgeRawIcon(v);
+                  setBadgesDraft(p => ({
+                    ...p,
+                    icon: applyColor(v, badgeIconColor)
+                  }));
+                }}>
+                  <SelectTrigger className="w-full">Select icon</SelectTrigger>
+                  <SelectContent className="h-50 bg-black">
+                    {
+                      icons.map((i, d) => (
+                        <SelectItem className="flex items-center gap-2" value={i.svg} key={d}>
+                          <span dangerouslySetInnerHTML={{__html: i.svg}}></span>
+                          <span>{i.name}</span>
+                        </SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
                 <Input placeholder="Title (e.g. Undetected)" value={badgesDraft.title}
                        onChange={e => setBadgesDraft(p => ({
                          ...p,

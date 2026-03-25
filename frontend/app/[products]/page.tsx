@@ -11,6 +11,7 @@ import { notFound } from 'next/navigation';
 import { getCategoryWithProducts, getImageUrl } from '@/lib/api';
 import { Metadata } from 'next';
 import Image from 'next/image';
+import { formatPrice } from '@/lib/utils';
 
 export async function generateMetadata({
                                          params,
@@ -31,14 +32,6 @@ export async function generateMetadata({
     title: category.name,
     description: category.description || `Товары категории ${category.name}`,
   };
-}
-
-function formatPrice(n: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0
-  }).format(n);
 }
 
 function ProductCard({
@@ -288,7 +281,7 @@ export default async function CategoryPage({
 
         <footer className="mt-16 pt-8 border-t border-white/[0.04] flex items-center justify-between">
           <p className="text-[10px] font-mono text-white/20 tracking-wider uppercase">
-            All prices in USD · Billed as selected
+            All prices in RUB · Billed as selected
           </p>
           <p className="text-[10px] font-mono text-white/20 tracking-wider uppercase">
             {category.products.length} products · {category.slug}

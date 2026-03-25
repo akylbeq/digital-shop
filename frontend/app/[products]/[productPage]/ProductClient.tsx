@@ -13,6 +13,7 @@ import {
 import { IProduct } from '@/app/types';
 import { getImageUrl } from '@/lib/api';
 import Image from 'next/image';
+import { formatPrice } from '@/lib/utils';
 
 export default function ProductClient({ product }: { product: IProduct }) {
   const [selected, setSelected] = useState<number | null>(null);
@@ -147,7 +148,7 @@ export default function ProductClient({ product }: { product: IProduct }) {
                     {p.duration}
                   </span>
                   <span className="text-lg font-semibold text-white">
-                    ₽{p.price}
+                    {formatPrice(p.price)}
                   </span>
                 </button>
               ))}
@@ -158,23 +159,25 @@ export default function ProductClient({ product }: { product: IProduct }) {
             <div className="flex items-baseline justify-between px-1 mb-1">
               <span className="text-xs text-white/30">Итого</span>
               <span className="text-2xl font-semibold text-white">
-                {selectedPrice ? `₽${selectedPrice.price}` : '—'}
+                {selectedPrice ? formatPrice(selectedPrice.price) : '—'}
               </span>
             </div>
 
-            <button
-              disabled={!selectedPrice || !product.isActive}
-              className="w-full py-3.5 rounded-xl text-sm font-medium transition-all duration-200 disabled:opacity-30 hover:opacity-90 active:scale-[0.99]"
-              style={{ background: 'white', color: '#050505' }}
-            >
-              {selectedPrice ? `Купить за · ₽${selectedPrice.price}` : 'Select period'}
-            </button>
+            <Link href="https://t.me/xploi">
+              <button
+                disabled={!selectedPrice || !product.isActive}
+                className="w-full py-3.5 rounded-xl text-sm font-medium transition-all duration-200 disabled:opacity-30 hover:opacity-90 active:scale-[0.99]"
+                style={{ background: 'white', color: '#050505' }}
+              >
+                {selectedPrice ? `Купить за · ` +  formatPrice(selectedPrice.price) : 'Select period'}
+              </button>
+            </Link>
 
             <Link
               href={`/${product.category.slug}`}
               className="w-full py-3 rounded-xl text-sm text-center text-white/30 hover:text-white/60 border border-white/[0.07] hover:border-white/15 transition-all"
             >
-              ← Back
+              ← Назад
             </Link>
           </div>
 

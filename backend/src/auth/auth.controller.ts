@@ -13,8 +13,6 @@ import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import type { Request, Response } from 'express';
 import { UsersService } from '../users/users.service';
-import { ApiOkResponse } from '@nestjs/swagger';
-import { User } from '../users/user.entity';
 import {
   getAccessCookieOptions,
   getRefreshCookieOptions,
@@ -54,7 +52,6 @@ export class AuthController {
   }
 
   @Get('me')
-  @ApiOkResponse({ type: User })
   async me(@Req() req: Request) {
     const token = req.cookies['access_token'] as string;
     if (!token) {

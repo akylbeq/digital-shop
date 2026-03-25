@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UsersController } from './users/users.controller';
 import { UsersService } from './users/users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -19,29 +17,42 @@ import { UploadImageController } from './upload-image/upload-image.controller';
 import { KeysService } from './keys/keys.service';
 import { KeysController } from './keys/keys.controller';
 import { Key } from './keys/key.entity';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: '127.0.0.1',
-      port: 5432,
-      username: 'postgres',
-      password: 'password',
-      database: 'mydb',
-      entities: [User, Category, Product, Key],
-      synchronize: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
     }),
+
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get<string>('DB_HOST'),
+        port: Number(config.get<string>('DB_PORT')),
+        username: config.get<string>('DB_USERNAME'),
+        password: config.get<string>('DB_PASSWORD'),
+        database: config.get<string>('DB_NAME'),
+        entities: [User, Category, Product, Key],
+        synchronize: config.get<string>('NODE_ENV') !== 'production',
+      }),
+    }),
+
     TypeOrmModule.forFeature([User, Category, Product, Key]),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'qe',
-      signOptions: { expiresIn: '15m' },
+
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.getOrThrow<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: '2h',
+        },
+      }),
     }),
-    ConfigModule.forRoot(),
   ],
   controllers: [
-    AppController,
     UsersController,
     AuthController,
     CategoriesController,
@@ -50,7 +61,6 @@ import { ConfigModule } from '@nestjs/config';
     KeysController,
   ],
   providers: [
-    AppService,
     UsersService,
     AuthService,
     TokenService,

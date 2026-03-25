@@ -17,13 +17,6 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { TokenAuthGuard } from '../auth/token-auth.guard';
 import { PermitAuthGuard } from '../auth/permit-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import {
-  ApiBearerAuth,
-  ApiForbiddenResponse,
-  ApiResponse,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
-import { CategoryResponseDto } from './dto/categoryResponse.dto';
 import { PaginationDto } from './dto/pagination.dto';
 
 @Controller('categories')
@@ -31,7 +24,6 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get('root')
-  @ApiResponse({ type: CategoryResponseDto, isArray: true })
   getRootCategories() {
     return this.categoriesService.getRootCategories();
   }
@@ -39,9 +31,6 @@ export class CategoriesController {
   @Get()
   @UseGuards(TokenAuthGuard, PermitAuthGuard)
   @Roles('admin')
-  @ApiBearerAuth()
-  @ApiUnauthorizedResponse({ description: 'Не авторизован' })
-  @ApiForbiddenResponse({ description: 'Нет прав (требуется роль admin)' })
   adminGetAllCategories(@Query() query: PaginationDto) {
     return this.categoriesService.adminGetAllCategories(query);
   }

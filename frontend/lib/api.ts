@@ -5,7 +5,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 async function fetchData<T>(patch: string, fallback: T): Promise<T> {
   try {
   const res = await fetch(API_URL + patch, {
-    next: {revalidate: 3600},
+    next: {revalidate: 100},
   })
   if (!res.ok) {
     return fallback;

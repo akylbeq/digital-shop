@@ -7,7 +7,7 @@ export const getAccessCookieOptions = (): CookieOptions => ({
   secure: isProduction,
   sameSite: 'lax',
   path: '/',
-  domain: process.env.DOMAIN || 'localhost',
+  domain: domain,
   maxAge: 2 * 60 * 60 * 1000,
 });
 

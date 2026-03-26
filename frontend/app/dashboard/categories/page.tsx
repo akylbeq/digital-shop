@@ -9,6 +9,7 @@ import EditCategoryModal from '@/app/dashboard/categories/EditCategory';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import Pagination from '@/app/components/Pagination';
+import { getImageUrl } from '@/lib/api';
 
 export default function CategoriesPage() {
   const {
@@ -107,7 +108,7 @@ export default function CategoriesPage() {
                   <div
                     className="relative w-10 h-10 rounded border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden">
                     {category.image ? (
-                      <Image src={'http://localhost:8000' + category.image} alt={category.name} fill sizes="100vw"
+                      <Image src={getImageUrl(category.image)} alt={category.name} fill sizes="100vw"
                              className="object-cover" unoptimized/>
                     ) : (
                       <ImageIcon size={14} className="text-zinc-800"/>

@@ -18,6 +18,9 @@ import { KeysService } from './keys/keys.service';
 import { KeysController } from './keys/keys.controller';
 import { Key } from './keys/key.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { S3Service } from './s3/s3.service';
+import { PaymentsModule } from './payments/payments.module';
+import { Order } from './orders/order.entity';
 
 @Module({
   imports: [
@@ -34,12 +37,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
-        entities: [User, Category, Product, Key],
+        entities: [User, Category, Product, Key, Order],
         synchronize: config.get<string>('NODE_ENV') !== 'production',
       }),
     }),
 
-    TypeOrmModule.forFeature([User, Category, Product, Key]),
+    TypeOrmModule.forFeature([User, Category, Product, Key, Order]),
 
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -51,6 +54,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         },
       }),
     }),
+    PaymentsModule,
   ],
   controllers: [
     UsersController,
@@ -67,6 +71,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     CategoriesService,
     ProductsService,
     KeysService,
+    S3Service,
   ],
 })
 export class AppModule {}

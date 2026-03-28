@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
-import { OrdersService } from './orders.service';
+import { OrdersService } from '../orders/orders.service';
 import { PallyService } from './pally/pally.service';
 import { PallyWebhookBody } from './pally/types';
 import { PaymentCreateDto } from './dto/payment-create.dto';
@@ -77,6 +77,7 @@ export class PaymentsController {
 
     if (Status === 'SUCCESS') {
       await this.ordersService.markPaid(orderId);
+      await this.ordersService.tryCreditReferralReward(orderId);
       await this.ordersService.deliverDigitalItem(orderId);
     } else if (Status === 'FAIL') {
       await this.ordersService.markFailed(orderId);

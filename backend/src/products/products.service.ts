@@ -79,6 +79,26 @@ export class ProductsService {
     };
   }
 
+  async findActiveProductsForTelegram(limit = 30): Promise<Product[]> {
+    return this.productRepo.find({
+      where: { isActive: true },
+      order: { id: 'DESC' },
+      take: limit,
+      relations: { category: true },
+    });
+  }
+
+  async findByIdForBot(id: number): Promise<Product> {
+    const product = await this.productRepo.findOne({
+      where: { id, isActive: true },
+      relations: { category: true },
+    });
+    if (!product) {
+      throw new NotFoundException(`Product with id "${id}" not found`);
+    }
+    return product;
+  }
+
   async findBySlug(slug: string): Promise<Product> {
     const product = await this.productRepo.findOne({
       where: { slug },

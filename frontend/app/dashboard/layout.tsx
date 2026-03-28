@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { BarChart3, Layers, ShoppingCart } from 'lucide-react';
+import { BarChart3, ClipboardList, Layers, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -9,6 +9,12 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
 
 
   const navItems = [
+    {
+      id: 'orders',
+      label: 'Orders',
+      icon: ClipboardList,
+      href: '/dashboard/orders'
+    },
     {
       id: 'products',
       label: 'Products',

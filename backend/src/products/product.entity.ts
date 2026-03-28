@@ -40,6 +40,10 @@ export class Product {
   @Column({ type: 'boolean', default: false })
   isActive: boolean;
 
+  /** Процент реферальной награды от суммы заказа (если null — глобальный env) */
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  referralPercent: string | null;
+
   @Column({ type: 'jsonb', nullable: true })
   features: { title: string; icon: string; items: string[] }[];
 

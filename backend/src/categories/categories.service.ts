@@ -31,13 +31,42 @@ export class CategoriesService {
   async getCategoryWithProductsBySlug(slug: string): Promise<Category> {
     const category = await this.categoriesRepo.findOne({
       where: { slug, isActive: true },
-      relations: ['products'],
+      relations: ['products', 'children'],
     });
 
     if (!category) {
       throw new NotFoundException(`Category with slug "${slug}" not found`);
     }
 
+    if (category.products?.length) {
+      category.products = category.products.filter((p) => p.isActive);
+    }
+
+    return category;
+  }
+
+  async getCategoryByIdWithChildren(id: number): Promise<Category> {
+    const category = await this.categoriesRepo.findOne({
+      where: { id, isActive: true },
+      relations: ['children'],
+    });
+    if (!category) {
+      throw new NotFoundException(`Category with id "${id}" not found`);
+    }
+    return category;
+  }
+
+  async listActiveProductsForCategory(categoryId: number): Promise<Category> {
+    const category = await this.categoriesRepo.findOne({
+      where: { id: categoryId, isActive: true },
+      relations: ['products'],
+    });
+    if (!category) {
+      throw new NotFoundException(`Category with id "${categoryId}" not found`);
+    }
+    if (category.products?.length) {
+      category.products = category.products.filter((p) => p.isActive);
+    }
     return category;
   }
 

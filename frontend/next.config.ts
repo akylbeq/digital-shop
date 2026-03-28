@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
         port: '8000',
         pathname: '/images/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.telegram.org',
+        pathname: '/file/**',
+      },
     ],
   },
 };

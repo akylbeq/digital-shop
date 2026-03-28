@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateKeyDto } from './dto/create-key.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Key } from './key.entity';
+import { Key, KeyStatus } from './key.entity';
 import { Repository } from 'typeorm';
 import { UpdateKeyDto } from './dto/update-key.dto';
 
@@ -60,6 +60,12 @@ export class KeysService {
       page,
       limit,
     };
+  }
+
+  async countAvailableForProduct(productId: number): Promise<number> {
+    return this.keysRepository.count({
+      where: { productId, status: KeyStatus.ACTIVE },
+    });
   }
 
   async delete(id: number) {

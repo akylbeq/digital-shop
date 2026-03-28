@@ -18,6 +18,9 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user) throw new UnauthorizedException('Неверный email или пароль');
+    if (!user.password) {
+      throw new UnauthorizedException('Неверный email или пароль');
+    }
 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) throw new UnauthorizedException('Неверный email или пароль');

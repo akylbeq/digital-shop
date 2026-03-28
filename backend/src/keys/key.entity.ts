@@ -37,6 +37,11 @@ export class Key {
 
   @Column()
   productId: number;
+
+  /** Связь с заказом (без FK-entity, чтобы избежать циклических импортов) */
+  @Column({ type: 'int', nullable: true })
+  orderId: number | null;
+
   @CreateDateColumn()
   createdAt: Date;
 }

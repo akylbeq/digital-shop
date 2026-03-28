@@ -13,7 +13,7 @@ export class TokenService {
     return this.jwt.sign(
       {
         sub: user.id,
-        email: user.email,
+        email: user.email ?? '',
         role: user.role,
       },
       { expiresIn: '2h' },

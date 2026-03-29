@@ -46,6 +46,7 @@ export class KeysService {
         id: true,
         key: true,
         status: true,
+        duration: true,
         createdAt: true,
         product: {
           id: true,

@@ -13,6 +13,7 @@ export default function AddKey() {
   const [isOpen, setIsOpen] = useState(false);
   const [keyData, setKeyData] = useState<KeyMutation>({
     key: '',
+    duration: 0,
     productId: null,
   });
   const [text, setText] = useState('');
@@ -31,8 +32,7 @@ export default function AddKey() {
     const success = await createKey(keyData);
     if (!success) return;
 
-    setKeyData({ key: '', productId: null });
-    setIsOpen(false);
+    setKeyData(prev => ({...prev, key: ''}));
   };
 
   useEffect(() => {
@@ -82,6 +82,28 @@ export default function AddKey() {
                     .map((product) => (
                       <SelectItem value={product.id.toString()} key={product.id}>
                         {product.name}
+                      </SelectItem>
+                    ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="product">Duration</Label>
+            <Select
+              onOpenChange={(open) => !open && setText('')}
+              onValueChange={(v) => setKeyData(prev => ({ ...prev, duration: Number(v) }))}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select duration" />
+              </SelectTrigger>
+              <SelectContent className="bg-black">
+                <SelectGroup>
+                  {[1, 3, 7, 14, 30]
+                    .map((n) => (
+                      <SelectItem value={n.toString()} key={n}>
+                        {n}
                       </SelectItem>
                     ))}
                 </SelectGroup>

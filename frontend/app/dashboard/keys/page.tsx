@@ -75,6 +75,7 @@ export default function KeysPage() {
             <th className="px-6 py-4">ID</th>
             <th className="px-6 py-4">Key</th>
             <th className="px-6 py-4">Status</th>
+            <th className="px-6 py-4">Duration</th>
             <th className="px-6 py-4">Product</th>
             <th className="px-6 py-4">Created</th>
             <th className="px-6 py-4 text-right">Actions</th>
@@ -119,6 +120,13 @@ export default function KeysPage() {
                     }
                     `}>
                       {key.status}
+                    </span>
+
+                </td>
+
+                <td className="px-6 py-4">
+                    <span className={`px-2 py-0.5 rounded text-[9px] uppercase`}>
+                      {key.duration}
                     </span>
 
                 </td>

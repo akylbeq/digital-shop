@@ -11,6 +11,7 @@ import { Order, OrderPaymentSource, OrderStatus } from './order.entity';
 import { Key, KeyStatus } from '../keys/key.entity';
 import { User } from '../users/user.entity';
 import { ReferralsService } from '../referrals/referrals.service';
+import { Product } from 'src/products/product.entity';
 
 export interface OrderListFilters {
   status?: OrderStatus;
@@ -198,10 +199,24 @@ export class OrdersService {
         return;
       }
 
+      const product = await em.findOne(Product, {
+        where: { id: locked.itemId },
+      });
+
+      const prices = product?.prices ?? [];
+      const selectedPrice = prices[locked.selectedPriceIndex ?? 0];
+
+      const duration = selectedPrice
+        ? parseInt(selectedPrice.duration, 10)
+        : null;
+
+      console.log(duration);
+
       const freeKey = await em.findOne(Key, {
         where: {
           productId: locked.itemId,
           status: KeyStatus.ACTIVE,
+          ...(duration ? { duration } : {}),
         },
         order: { id: 'ASC' },
       });
@@ -255,6 +270,9 @@ export class OrdersService {
     const order = await this.findById(orderId);
     if (!order) {
       throw new NotFoundException('Заказ не найден');
+    }
+    if (order.status === OrderStatus.PAID) {
+      return { order, keyDelivered: true, noKeysAvailable: false };
     }
     if (order.status !== OrderStatus.PENDING_REVIEW) {
       throw new BadRequestException('Заказ не ожидает решения администратора');

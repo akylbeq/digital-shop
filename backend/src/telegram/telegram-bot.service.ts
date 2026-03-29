@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   forwardRef,
   Inject,
   Injectable,
@@ -24,11 +25,11 @@ type ApproveManualResult = Awaited<
   ReturnType<OrdersService['approveManualOrder']>
 >;
 
-const BTN_CATALOG = 'Каталог';
-const BTN_PROFILE = 'Профиль';
-const BTN_PURCHASES = 'Мои покупки';
-const BTN_SUPPORT = 'Поддержка';
-const BTN_REVIEWS = 'Отзывы';
+const BTN_CATALOG = '🛍️ Каталог';
+const BTN_PROFILE = '👤 Профиль';
+const BTN_PURCHASES = '🗂 Мои покупки';
+const BTN_SUPPORT = '👨‍💻 Поддержка';
+const BTN_REVIEWS = '☀️ Отзывы';
 
 @Injectable()
 export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
@@ -257,8 +258,14 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
         });
 
         await ctx.reply(
-          'Добро пожаловать в цифровой магазин.\n\nВыберите раздел ниже.',
-          this.mainReplyKeyboard(),
+          `👋 Привет, ${ctx.from.first_name}!\n\n` +
+            `🛒 Добро пожаловать \n\n` +
+            `Здесь ты можешь купить читы и моды для мобильных игр.\n\n` +
+            `Выбери раздел 👇`,
+          {
+            parse_mode: 'Markdown',
+            ...this.mainReplyKeyboard(),
+          },
         );
       } catch (e) {
         this.logger.error(e);
@@ -530,8 +537,7 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     const base = this.publicBaseUrl;
     const categoryUrl = resolvePublicAssetUrl(base, cat.image);
 
-    const categoryCaption =
-      `📁 ${cat.name}` + `${cat.description ? `\n\n${cat.description}` : ''}`;
+    const categoryCaption = `${cat.description ? `\n\n${cat.description}` : ''}`;
 
     const activeChildren = (cat.children ?? []).filter((ch) => ch.isActive);
 
@@ -799,10 +805,10 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
 
     if (tgBuyer && this.bot) {
       if (result.keyDelivered && order.deliveredKey) {
+        const safeKey = order.deliveredKey.replace(/`/g, "'");
         await this.bot.telegram.sendMessage(
           tgBuyer,
-          `✅ Оплата подтверждена.\nВаш ключ:\n\`${order.deliveredKey}\``,
-          { parse_mode: 'Markdown' },
+          `✅ Оплата подтверждена.\n\nВаш ключ: ${safeKey}\n\nСкачать чит можно в @setup_mods`,
         );
       } else if (result.noKeysAvailable) {
         await this.bot.telegram.sendMessage(
@@ -838,21 +844,30 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
 
     await ctx.answerCbQuery();
 
-    const saved = await this.ordersService.rejectManualOrder(orderId);
-    const full = await this.ordersService.findByIdWithRelations(orderId);
-    const tgBuyer = full?.user?.telegramId;
+    try {
+      const saved = await this.ordersService.rejectManualOrder(orderId);
+      const full = await this.ordersService.findByIdWithRelations(orderId);
+      const tgBuyer = full?.user?.telegramId;
 
-    if (tgBuyer && this.bot) {
-      await this.bot.telegram.sendMessage(
-        tgBuyer,
-        `❌ Оплата по заказу #${full ? publicOrderLabel(full) : orderId} отклонена.`,
+      if (tgBuyer && this.bot) {
+        await this.bot.telegram.sendMessage(
+          tgBuyer,
+          `❌ Оплата по заказу #${full ? publicOrderLabel(full) : orderId} отклонена.`,
+        );
+      }
+
+      await ctx.reply(
+        `Заказ #${full ? publicOrderLabel(full) : orderId} отклонён.`,
       );
+      void saved;
+    } catch (e) {
+      if (e instanceof BadRequestException) {
+        await ctx.reply(`⚠️ ${e.message}`);
+      } else {
+        this.logger.error(e);
+        await ctx.reply('Ошибка при отклонении заказа.');
+      }
     }
-
-    await ctx.reply(
-      `Заказ #${full ? publicOrderLabel(full) : orderId} отклонён.`,
-    );
-    void saved;
   }
 
   private isAdmin(fromId?: number) {

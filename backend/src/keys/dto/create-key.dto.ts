@@ -8,4 +8,8 @@ export class CreateKeyDto {
   @IsNotEmpty()
   @IsNumber()
   productId: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  duration: number;
 }

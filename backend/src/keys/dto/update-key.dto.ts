@@ -11,4 +11,7 @@ export class UpdateKeyDto {
   @IsNotEmpty()
   @IsNumber()
   productId: KeyStatus;
+  @IsNotEmpty()
+  @IsNumber()
+  duration: number;
 }

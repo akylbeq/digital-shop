@@ -97,6 +97,7 @@ export interface IKey {
   id: number;
   key: string;
   status: string;
+  duration: number;
   product: {
     id: number;
     name: string;
@@ -106,6 +107,7 @@ export interface IKey {
 
 export interface KeyMutation {
   key: string;
+  duration: number;
   productId: number | null;
 }
 

@@ -52,7 +52,6 @@ export class Order {
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  /** product id */
   @Column()
   itemId: number;
 
@@ -63,7 +62,6 @@ export class Order {
   @Column('decimal', { precision: 10, scale: 2 })
   amount: number;
 
-  /** Индекс в product.prices[], если заказ с сайта/бота с выбором периода */
   @Column({ type: 'int', nullable: true })
   selectedPriceIndex: number | null;
 

@@ -210,8 +210,6 @@ export class OrdersService {
         ? parseInt(selectedPrice.duration, 10)
         : null;
 
-      console.log(duration);
-
       const freeKey = await em.findOne(Key, {
         where: {
           productId: locked.itemId,

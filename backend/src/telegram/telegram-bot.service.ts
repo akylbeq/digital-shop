@@ -789,6 +789,9 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
       from?: { id: number };
       answerCbQuery: (t?: string) => Promise<unknown>;
       reply: (t: string) => Promise<unknown>;
+      editMessageReplyMarkup?: (markup: {
+        inline_keyboard: [];
+      }) => Promise<unknown>;
     },
     orderId: number,
   ) {
@@ -797,36 +800,62 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    await ctx.answerCbQuery();
+    await ctx.answerCbQuery('Обрабатываю...');
 
-    const result = await this.ordersService.approveManualOrder(orderId);
-    const order = result.order;
-    const tgBuyer = order.user?.telegramId;
+    try {
+      const result = await this.ordersService.approveManualOrder(orderId);
+      const order = result.order;
+      const tgBuyer = order.user?.telegramId;
 
-    if (tgBuyer && this.bot) {
-      if (result.keyDelivered && order.deliveredKey) {
-        const safeKey = order.deliveredKey.replace(/`/g, "'");
-        await this.bot.telegram.sendMessage(
-          tgBuyer,
-          `✅ Оплата подтверждена.\n\nВаш ключ: ${safeKey}\n\nСкачать чит можно в @setup_mods`,
-        );
-      } else if (result.noKeysAvailable) {
-        await this.bot.telegram.sendMessage(
-          tgBuyer,
-          `✅ Оплата по заказу #${publicOrderLabel(order)} подтверждена, но ключи временно закончились. Мы свяжемся с вами.`,
-        );
-
-        const admin = this.adminTelegramId;
-        if (admin) {
+      if (tgBuyer && this.bot) {
+        if (result.keyDelivered && order.deliveredKey) {
+          const safeKey = order.deliveredKey.replace(/`/g, "'");
           await this.bot.telegram.sendMessage(
-            admin,
-            `⚠️ Заказ #${publicOrderLabel(order)}: ключей нет в наличии.`,
+            tgBuyer,
+            `✅ Оплата подтверждена.\n\nВаш ключ: ${safeKey}\n\nСкачать чит можно в @setup_mods`,
           );
+        } else if (result.noKeysAvailable) {
+          await this.bot.telegram.sendMessage(
+            tgBuyer,
+            `✅ Оплата по заказу #${publicOrderLabel(order)} подтверждена, но ключи временно закончились. Мы свяжемся с вами.`,
+          );
+
+          const admin = this.adminTelegramId;
+          if (admin) {
+            await this.bot.telegram.sendMessage(
+              admin,
+              `⚠️ Заказ #${publicOrderLabel(order)}: ключей нет в наличии.`,
+            );
+          }
         }
       }
-    }
 
-    await ctx.reply(`Заказ #${publicOrderLabel(order)} обработан (выдача).`);
+      if (ctx.editMessageReplyMarkup) {
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+      }
+
+      await ctx.reply(`Заказ #${publicOrderLabel(order)} обработан (выдача).`);
+    } catch (e) {
+      this.logger.warn(
+        `Повторная/ошибочная попытка approve для заказа #${orderId}`,
+        e instanceof Error ? e.stack : String(e),
+      );
+
+      const message = e instanceof Error ? e.message : 'Неизвестная ошибка';
+
+      if (message.includes('Заказ не ожидает решения администратора')) {
+        if (ctx.editMessageReplyMarkup) {
+          await ctx
+            .editMessageReplyMarkup({ inline_keyboard: [] })
+            .catch(() => null);
+        }
+
+        await ctx.reply(`Заказ #${orderId} уже был обработан ранее.`);
+        return;
+      }
+
+      await ctx.reply(`Ошибка при обработке заказа #${orderId}: ${message}`);
+    }
   }
 
   private async handleAdminReject(

@@ -256,10 +256,6 @@ export class OrdersService {
     return this.ordersRepository.save(order);
   }
 
-  /**
-   * Одобрить ручную оплату и выдать ключ (общая логика с Pally после markPaid).
-   * Возвращает флаг, удалось ли выдать ключ.
-   */
   async approveManualOrder(orderId: number): Promise<{
     order: Order;
     keyDelivered: boolean;

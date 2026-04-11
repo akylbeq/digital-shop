@@ -74,6 +74,12 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.bot = new Telegraf(token);
+    this.bot.catch((err: unknown, ctx) => {
+      this.logger.error(
+        `Необработанная ошибка бота [${ctx.updateType}]:`,
+        err instanceof Error ? err.stack : String(err),
+      );
+    });
     this.registerHandlers();
 
     void this.bot
@@ -303,31 +309,31 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
 
     this.bot.action(/^c:(\d+)$/, async (ctx) => {
       const id = Number(ctx.match[1]);
-      await ctx.answerCbQuery();
+      await ctx.answerCbQuery().catch(() => {});
       await this.showCategory(ctx as Context, id);
     });
 
     this.bot.action(/^nav:catalog$/, async (ctx) => {
-      await ctx.answerCbQuery();
+      await ctx.answerCbQuery().catch(() => {});
       await this.showCatalog(ctx as Context);
     });
 
     this.bot.action(/^p:(\d+)$/, async (ctx) => {
       const id = Number(ctx.match[1]);
-      await ctx.answerCbQuery();
+      await ctx.answerCbQuery().catch(() => {});
       await this.showProduct(ctx as Context, id);
     });
 
     this.bot.action(/^b:(\d+):(\d+)$/, async (ctx) => {
       const productId = Number(ctx.match[1]);
       const priceIdx = Number(ctx.match[2]);
-      await ctx.answerCbQuery();
+      await ctx.answerCbQuery().catch(() => {});
       await this.startPurchase(ctx as Context, productId, priceIdx);
     });
 
     this.bot.action(/^o:(\d+)$/, async (ctx) => {
       const orderId = Number(ctx.match[1]);
-      await ctx.answerCbQuery();
+      await ctx.answerCbQuery().catch(() => {});
       await this.showOrderDetail(ctx as Context, orderId);
     });
 
@@ -344,7 +350,7 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     this.bot.action(/^cancel:(\d+)$/, async (ctx) => {
       const orderId = Number(ctx.match[1]);
 
-      await ctx.answerCbQuery();
+      await ctx.answerCbQuery().catch(() => {});
 
       await this.ordersService.cancelOrder(orderId);
       this.pendingScreenshotOrder.delete(String(ctx.from.id));

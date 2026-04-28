@@ -41,28 +41,6 @@ export class OrdersService {
     private readonly referralsService: ReferralsService,
   ) {}
 
-  /** Публичный вызов после онлайн-оплаты (Pally) */
-  async tryCreditReferralReward(orderId: number): Promise<void> {
-    await this.referralsService.tryCreditForPaidOrder(orderId);
-  }
-
-  async createPendingOrder(userId: number, itemId: number, amount: number) {
-    const order = this.ordersRepository.create({
-      publicId: randomUUID(),
-      userId,
-      itemId,
-      amount,
-      status: OrderStatus.PENDING,
-      paymentSource: OrderPaymentSource.PALLY,
-      pallyBillId: null,
-      deliveredKey: null,
-      isDelivered: false,
-      selectedPriceIndex: null,
-    });
-
-    return this.ordersRepository.save(order);
-  }
-
   async createManualCardOrder(
     userId: number,
     itemId: number,
@@ -76,25 +54,11 @@ export class OrdersService {
       amount,
       status: OrderStatus.WAITING_PAYMENT,
       paymentSource: OrderPaymentSource.MANUAL_CARD,
-      pallyBillId: null,
       deliveredKey: null,
       isDelivered: false,
       selectedPriceIndex,
     });
 
-    return this.ordersRepository.save(order);
-  }
-
-  async attachPallyBill(orderId: number, billId: string) {
-    const order = await this.ordersRepository.findOne({
-      where: { id: orderId },
-    });
-
-    if (!order) {
-      throw new NotFoundException('Заказ не найден');
-    }
-
-    order.pallyBillId = billId;
     return this.ordersRepository.save(order);
   }
 
@@ -111,13 +75,6 @@ export class OrdersService {
     });
     this.stripUserSecrets(order);
     return order;
-  }
-
-  async findByPublicId(publicId: string) {
-    return this.ordersRepository.findOne({
-      where: { publicId },
-      relations: ['user', 'product'],
-    });
   }
 
   async findOrdersForUser(userId: number, take = 20) {
@@ -319,19 +276,32 @@ export class OrdersService {
     return this.ordersRepository.save(order);
   }
 
-  async getOrderPublicStatus(orderId: number) {
-    const order = await this.findById(orderId);
+  async getOrderPublic(orderId: string) {
+    const order = await this.ordersRepository.findOne({
+      where: { publicId: orderId },
+      relations: ['product'],
+    });
 
     if (!order) {
       throw new NotFoundException('Заказ не найден');
     }
 
+    const priceEntry =
+      order.selectedPriceIndex !== null
+        ? (order.product.prices?.[order.selectedPriceIndex] ?? null)
+        : null;
+
     return {
       id: order.id,
+      publicId: order.publicId,
       status: order.status,
       isDelivered: order.isDelivered,
+      product: order.product.name,
+      amount: order.amount,
+      duration: priceEntry?.duration ?? null,
       deliveredKey:
         order.status === OrderStatus.PAID ? order.deliveredKey : null,
+      createdAt: order.createdAt,
     };
   }
 

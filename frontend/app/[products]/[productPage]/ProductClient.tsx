@@ -14,6 +14,7 @@ import { IProduct } from '@/app/types';
 import { getImageUrl } from '@/lib/api';
 import Image from 'next/image';
 import { formatPrice } from '@/lib/utils';
+import SelectPaymentProvider from '@/app/components/SelectPaymentProvider';
 
 export default function ProductClient({ product }: { product: IProduct }) {
   const [selected, setSelected] = useState<number | null>(null);
@@ -163,15 +164,7 @@ export default function ProductClient({ product }: { product: IProduct }) {
               </span>
             </div>
 
-            <Link href="https://t.me/xploi">
-              <button
-                disabled={!selectedPrice || !product.isActive}
-                className="w-full py-3.5 rounded-xl text-sm font-medium transition-all duration-200 disabled:opacity-30 hover:opacity-90 active:scale-[0.99]"
-                style={{ background: 'white', color: '#050505' }}
-              >
-                {selectedPrice ? `Купить за · ` +  formatPrice(selectedPrice.price) : 'Select period'}
-              </button>
-            </Link>
+            <SelectPaymentProvider selectedPrice={selectedPrice!} isActive={product.isActive} product={product.name} id={product.id}/>
 
             <Link
               href={`/${product.category.slug}`}

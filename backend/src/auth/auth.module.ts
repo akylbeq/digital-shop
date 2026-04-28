@@ -3,9 +3,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TokenService } from './token.service';
 
-/**
- * JWT + TokenService для AuthService и для модулей с TokenAuthGuard.
- */
 @Module({
   imports: [
     JwtModule.registerAsync({

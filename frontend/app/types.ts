@@ -53,44 +53,46 @@ export interface ProductMutation {
   description: string;
   slug: string;
   image: string;
-  prices: {duration: string, price: number}[];
+  prices: { duration: string, price: number }[];
   isActive: boolean;
   categoryId: number | null;
   imagesAlbum: string[];
-  features: {title: string, icon: string, items: string[]}[];
-  badges: {icon: string, title: string, color: string}[];
+  features: { title: string, icon: string, items: string[] }[];
+  badges: { icon: string, title: string, color: string }[];
 }
+
 export interface IProduct {
   id: number;
   name: string;
   description: string;
   slug: string;
   image: string;
-  prices: {duration: string, price: number}[];
+  prices: { duration: string, price: number }[];
   isActive: boolean;
   categoryId: number | null;
   createdAt: string;
   imagesAlbum: string[];
-  features: {title: string, icon: string, items: string[]}[];
-  badges: {icon: string, title: string, color: string}[];
+  features: { title: string, icon: string, items: string[] }[];
+  badges: { icon: string, title: string, color: string }[];
   category: {
     id: number;
     name: string;
     slug: string;
-  }
+  };
 }
+
 export interface ProductEditing {
   id: number;
   name: string;
   description: string;
   slug: string;
   image: string;
-  prices: {duration: string, price: number}[];
+  prices: { duration: string, price: number }[];
   isActive: boolean;
   categoryId: number | null;
   imagesAlbum: string[];
-  features: {title: string, icon: string, items: string[]}[];
-  badges: {icon: string, title: string, color: string}[];
+  features: { title: string, icon: string, items: string[] }[];
+  badges: { icon: string, title: string, color: string }[];
 }
 
 export interface IKey {
@@ -116,4 +118,31 @@ export interface KeyUpdating {
   status: string;
   productId: number | null;
   id: number;
+}
+
+export interface CreateOrder {
+  productId: number;
+  duration: string;
+  payment_method: string;
+}
+
+export interface UnopayResponse {
+  status: string;
+  transaction_id: string;
+  payment_url: string;
+  amount: number;
+  currency: string;
+  orderId: string;
+}
+
+export interface IOrderPublicResponse {
+  id: string;
+  publicId: string;
+  status: string;
+  isDelivered: boolean;
+  product: string;
+  amount: number;
+  duration: string | null;
+  deliveredKey: string | null;
+  createdAt: string;
 }

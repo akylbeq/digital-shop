@@ -2,98 +2,61 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Get,
-  Param,
   Post,
+  Req,
+  Headers,
 } from '@nestjs/common';
+import type { RawBodyRequest } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as crypto from 'crypto';
 import { OrdersService } from '../orders/orders.service';
-import { PallyService } from './pally/pally.service';
-import { PallyWebhookBody } from './pally/types';
-import { PaymentCreateDto } from './dto/payment-create.dto';
+import { UnopayWebhookBody } from './unopay/dto/webhook.dto';
+import crypto from 'node:crypto';
 
 @Controller('payments')
 export class PaymentsController {
   constructor(
     private readonly ordersService: OrdersService,
-    private readonly pallyService: PallyService,
     private readonly configService: ConfigService,
   ) {}
 
-  @Post('create')
-  async createPayment(@Body() body: PaymentCreateDto) {
-    const { userId, itemId, amount } = body;
-
-    if (!userId || !itemId || !amount) {
-      throw new BadRequestException('userId, itemId, amount обязательны');
+  @Post('webhook/unopay')
+  async unopayWebhook(
+    @Body() body: UnopayWebhookBody,
+    @Headers('x-unopay-signature') signature: string,
+    @Req() req: RawBodyRequest<Request>,
+  ) {
+    if (!signature) {
+      throw new BadRequestException('Подпись отсутствует');
     }
-
-    const order = await this.ordersService.createPendingOrder(
-      userId,
-      itemId,
-      amount,
-    );
-
-    const payment = await this.pallyService.createBill(
-      Number(order.amount),
-      String(order.id),
-    );
-
-    await this.ordersService.attachPallyBill(order.id, payment.bill_id);
-
-    return {
-      orderId: order.id,
-      paymentUrl: payment.link_page_url,
-      billId: payment.bill_id,
-    };
-  }
-
-  @Post('webhook/pally')
-  async pallyWebhook(@Body() body: PallyWebhookBody) {
-    const { Status, InvId, OutSum, SignatureValue } = body;
-
-    if (!InvId || !OutSum || !SignatureValue) {
-      throw new BadRequestException('Неверный webhook body');
+    if (!req.rawBody) {
+      throw new BadRequestException('Raw body отсутствует');
     }
-
-    const token = this.configService.getOrThrow<string>('PALLY_API_TOKEN');
-
+    const apiKey = this.configService.getOrThrow<string>('UNOPAY_API_KEY');
     const expectedSignature = crypto
-      .createHash('md5')
-      .update(`${OutSum}:${InvId}:${token}`)
-      .digest('hex')
-      .toUpperCase();
+      .createHmac('sha256', apiKey)
+      .update(req.rawBody)
+      .digest('hex');
 
-    if (expectedSignature !== String(SignatureValue).toUpperCase()) {
+    if (
+      !crypto.timingSafeEqual(
+        Buffer.from(expectedSignature),
+        Buffer.from(signature),
+      )
+    ) {
       throw new BadRequestException('Invalid signature');
     }
 
-    const orderId = Number(InvId);
+    const orderId = Number(body.metadata?.orderId);
 
     if (Number.isNaN(orderId)) {
-      throw new BadRequestException('InvId должен быть числом');
+      throw new BadRequestException('order_id отсутствует в metadata');
     }
 
-    if (Status === 'SUCCESS') {
+    if (body.event === 'payment.succeeded' && body.status === 'paid') {
       await this.ordersService.markPaid(orderId);
-      await this.ordersService.tryCreditReferralReward(orderId);
       await this.ordersService.deliverDigitalItem(orderId);
-    } else if (Status === 'FAIL') {
-      await this.ordersService.markFailed(orderId);
     }
 
     return 'OK';
-  }
-
-  @Get(':id/status')
-  async getOrderStatus(@Param('id') id: string) {
-    const orderId = Number(id);
-
-    if (Number.isNaN(orderId)) {
-      throw new BadRequestException('Некорректный id заказа');
-    }
-
-    return this.ordersService.getOrderPublicStatus(orderId);
   }
 }

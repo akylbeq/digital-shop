@@ -659,9 +659,6 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
 
     this.pendingScreenshotOrder.set(String(ctx.from!.id), order.id);
 
-    // const card = this.config.getOrThrow<string>('PAYMENT_CARD_NUMBER');
-    // const holder = this.config.getOrThrow<string>('PAYMENT_CARD_HOLDER');
-    // const bank = this.config.getOrThrow<string>('PAYMENT_BANK_NAME');
     const yoomoney = this.config.getOrThrow<string>('YOOMONEY_NUMBER');
 
     await ctx.reply(

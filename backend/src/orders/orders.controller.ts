@@ -53,6 +53,11 @@ export class OrdersController {
     return { ...order, paymentProofUrl };
   }
 
+  @Get('public/:id')
+  async getById(@Param('id') id: string) {
+    return this.ordersService.getOrderPublic(id);
+  }
+
   @Post(':id/approve')
   async approve(@Param('id', ParseIntPipe) id: number) {
     const result = await this.ordersService.approveManualOrder(id);

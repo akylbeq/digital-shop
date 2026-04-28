@@ -29,6 +29,7 @@ export enum OrderStatus {
 
 export enum OrderPaymentSource {
   PALLY = 'pally',
+  UNOPAY = 'unpay',
   MANUAL_CARD = 'manual_card',
 }
 
@@ -44,10 +45,6 @@ export class Order {
   @Column()
   userId: number;
 
-  /**
-   * Без FK в БД: synchronize не сможет навесить constraint, если в orders есть
-   * «осиротевшие» userId/itemId (старые данные). Связь нужна для join в запросах.
-   */
   @ManyToOne(() => User, { createForeignKeyConstraints: false })
   @JoinColumn({ name: 'userId' })
   user: User;
@@ -65,6 +62,9 @@ export class Order {
   @Column({ type: 'int', nullable: true })
   selectedPriceIndex: number | null;
 
+  @Column({ type: 'varchar', length: 1024, nullable: true })
+  paymentUrl: string | null;
+
   @Column({
     type: 'enum',
     enum: OrderStatus,
@@ -78,9 +78,6 @@ export class Order {
     nullable: true,
   })
   paymentSource: OrderPaymentSource | null;
-
-  @Column({ type: 'varchar', nullable: true })
-  pallyBillId: string | null;
 
   @Column({ type: 'varchar', length: 512, nullable: true })
   paymentProofTelegramFileId: string | null;

@@ -3,6 +3,7 @@ import React from 'react';
 import { useUserStore } from '@/app/store/user/user.store';
 import { Clock, CreditCard, LogOut, Package, Settings, Shield, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function ProfilePage() {
   const { user, logout} = useUserStore();
@@ -102,9 +103,9 @@ export default function ProfilePage() {
                 </div>
                 <p className="font-title text-[10px] tracking-widest text-white/30 uppercase mb-2">No active orders</p>
                 <p className="text-sm text-white/10 max-w-[240px]">У вас пока нет приобретенных товаров. Все ваши покупки появятся здесь.</p>
-                <a href="/" className="mt-8 text-[10px] font-title uppercase tracking-widest text-white border-b border-white/20 pb-1 hover:border-white transition-all">
+                <Link href="/" className="mt-8 text-[10px] font-title uppercase tracking-widest text-white border-b border-white/20 pb-1 hover:border-white transition-all">
                   Browse Shop
-                </a>
+                </Link>
               </div>
             </div>
           </div>

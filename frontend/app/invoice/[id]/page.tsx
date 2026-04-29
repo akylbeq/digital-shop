@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import { useCheckoutStore } from '@/app/store/checkout/checkout.store';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import NotFound from 'next/dist/client/components/builtin/not-found';
@@ -64,7 +64,11 @@ const statusUi: Record<
 };
 
 export default function Invoice() {
-  const {order, getOrderStatus, orderStatus} = useCheckoutStore();
+  const {
+    order,
+    getOrderStatus,
+    orderStatus
+  } = useCheckoutStore();
   const {id} = useParams();
   const [isPolling, setIsPolling] = useState(true);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -136,11 +140,11 @@ export default function Invoice() {
   }
 
   if (hasRequestedStatus && !orderStatus) {
-    return <NotFound />;
+    return <NotFound/>;
   }
   const currentOrder = orderStatus;
   if (!currentOrder) {
-    return <NotFound />;
+    return <NotFound/>;
   }
   const isPaid = currentOrder.status === 'PAID';
 

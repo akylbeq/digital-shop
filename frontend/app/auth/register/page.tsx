@@ -5,6 +5,7 @@ import { useUserStore } from '@/app/store/user/user.store';
 import { UserRegister } from '@/app/store/user/types';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Register() {
   const {register, user} = useUserStore();
@@ -39,7 +40,7 @@ export default function Register() {
     if (user) {
       router.push('/');
     }
-  }, [user])
+  }, [user, router])
 
   return (
     <div className="site-shell">
@@ -127,10 +128,10 @@ export default function Register() {
               <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-gray-600">
                 Already have an account?{' '}
               </span>
-              <a href="/login"
+              <Link href="/login"
                  className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white hover:opacity-70 transition-opacity">
                 Login
-              </a>
+              </Link>
             </div>
           </form>
 

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
+import Image, { StaticImageData } from 'next/image';
 import sbpImage from '../../public/sbp-logo.png';
 import cardImage from '../../public/img_1.png';
 import { toast } from 'sonner';
@@ -13,7 +13,7 @@ import { Circle } from 'lucide-react';
 import { useUserStore } from '@/app/store/user/user.store';
 
 type PaymentMethod = 'sbp' | 'card' | 'admin' | null;
-const paymentMethods: { id: Exclude<PaymentMethod, null>; title: string; desc: string }[] = [
+const paymentMethods: { id: Exclude<PaymentMethod, null>; title: string; desc: string, img: StaticImageData }[] = [
   { id: 'sbp', title: 'СБП', desc: 'Система быстрых платежей', img: sbpImage },
   { id: 'admin', title: 'Через администратора', desc: 'Прямой платеж', img: cardImage },
 ];

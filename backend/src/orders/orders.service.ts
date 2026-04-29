@@ -126,7 +126,10 @@ export class OrdersService {
     });
   }
 
-  async findPurchasesForUser(userId: number, take = 100): Promise<UserPurchaseItem[]> {
+  async findPurchasesForUser(
+    userId: number,
+    take = 100,
+  ): Promise<UserPurchaseItem[]> {
     const rows = await this.ordersRepository
       .createQueryBuilder('o')
       .leftJoin(Key, 'k', 'k.orderId = o.id')

@@ -4,10 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { useUserStore } from '@/app/store/user/user.store';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Login() {
-  const { login, user } = useUserStore();
-  const [userLogin, setUserLogin] = useState({ email: '', password: '' });
+  const {
+    login,
+    user
+  } = useUserStore();
+  const [userLogin, setUserLogin] = useState({
+    email: '',
+    password: ''
+  });
   const router = useRouter();
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -21,7 +28,7 @@ export default function Login() {
     if (user) {
       return router.push('/');
     }
-  }, [user, router])
+  }, [user, router]);
 
   return (
     <div className="site-shell">
@@ -30,10 +37,12 @@ export default function Login() {
         <div className="w-full max-w-md premium-card p-6 sm:p-8">
 
           <div className="text-center mb-12 sm:mb-16">
-            <span className="text-[8px] sm:text-[10px] uppercase tracking-[0.4em] sm:tracking-[0.8em] text-gray-600 block mb-3 sm:mb-4">
+            <span
+              className="text-[8px] sm:text-[10px] uppercase tracking-[0.4em] sm:tracking-[0.8em] text-gray-600 block mb-3 sm:mb-4">
               Welcome Back
             </span>
-            <h1 className="text-5xl sm:text-7xl md:text-8xl font-black leading-none tracking-tighter uppercase italic opacity-90">
+            <h1
+              className="text-5xl sm:text-7xl md:text-8xl font-black leading-none tracking-tighter uppercase italic opacity-90">
               Login
             </h1>
           </div>
@@ -49,7 +58,10 @@ export default function Login() {
               <input
                 type="email"
                 value={userLogin.email}
-                onChange={(e) => setUserLogin(prevState => ({ ...prevState, email: e.target.value }))}
+                onChange={(e) => setUserLogin(prevState => ({
+                  ...prevState,
+                  email: e.target.value
+                }))}
                 placeholder="your@email.com"
                 required
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base focus:border-white/30 focus:outline-none transition-colors placeholder:text-gray-500"
@@ -64,7 +76,10 @@ export default function Login() {
               <input
                 type="password"
                 value={userLogin.password}
-                onChange={(e) => setUserLogin(prevState => ({ ...prevState, password: e.target.value }))}
+                onChange={(e) => setUserLogin(prevState => ({
+                  ...prevState,
+                  password: e.target.value
+                }))}
                 placeholder="••••••••"
                 required
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base focus:border-white/30 focus:outline-none transition-colors placeholder:text-gray-500"
@@ -73,7 +88,8 @@ export default function Login() {
 
             {/* Forgot Password */}
             <div className="flex justify-end">
-              <a href="#" className="text-[9px] sm:text-[10px] uppercase tracking-widest text-gray-600 hover:text-white transition-colors">
+              <a href="#"
+                 className="text-[9px] sm:text-[10px] uppercase tracking-widest text-gray-600 hover:text-white transition-colors">
                 Forgot Password?
               </a>
             </div>
@@ -103,9 +119,10 @@ export default function Login() {
               <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-gray-600">
                 Don't have an account?{' '}
               </span>
-              <a href="/register" className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white hover:opacity-70 transition-opacity">
+              <Link href="/register"
+                 className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white hover:opacity-70 transition-opacity">
                 Register
-              </a>
+              </Link>
             </div>
           </form>
 
@@ -114,7 +131,8 @@ export default function Login() {
         {/* Decorative Element */}
         <div className="mt-16 sm:mt-20 flex flex-col items-center gap-3 sm:gap-4 opacity-30">
           <div className="w-[1px] h-8 sm:h-12 bg-white/10"></div>
-          <span className="text-[8px] sm:text-[9px] uppercase tracking-[0.4em] sm:tracking-[0.5em] text-gray-700">.01</span>
+          <span
+            className="text-[8px] sm:text-[9px] uppercase tracking-[0.4em] sm:tracking-[0.5em] text-gray-700">.01</span>
         </div>
       </section>
 

@@ -1,11 +1,10 @@
 import {
-  IsNotEmpty,
-  IsString,
-  IsOptional,
-  IsNumber,
   IsArray,
-  ValidateNested,
-  Min, IsBoolean, IsObject
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -39,15 +38,15 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsArray()
-  prices: {duration: string, price: number}[];
+  prices: { duration: string; price: number }[];
 
   @IsOptional()
   @IsArray()
-  features: {title: string, icon: string, items: string[]}[];
+  features: { title: string; icon: string; items: string[] }[];
 
   @IsOptional()
   @IsArray()
-  badges: {icon: string, title: string, color: string}[];
+  badges: { icon: string; title: string; color: string }[];
 
   @IsOptional()
   @IsArray()

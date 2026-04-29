@@ -47,13 +47,11 @@ export default function Login() {
             </h1>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
 
-            {/* Email Field */}
             <div className="space-y-3">
               <label className="block text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-gray-500">
-                Email Address
+                Email Адрес
               </label>
               <input
                 type="email"
@@ -68,10 +66,9 @@ export default function Login() {
               />
             </div>
 
-            {/* Password Field */}
             <div className="space-y-3">
               <label className="block text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-gray-500">
-                Password
+                Пароль
               </label>
               <input
                 type="password"
@@ -86,49 +83,37 @@ export default function Login() {
               />
             </div>
 
-            {/* Forgot Password */}
-            <div className="flex justify-end">
-              <a href="#"
-                 className="text-[9px] sm:text-[10px] uppercase tracking-widest text-gray-600 hover:text-white transition-colors">
-                Forgot Password?
-              </a>
-            </div>
-
-            {/* Submit Button */}
             <button
               type="submit"
               className="w-full bg-white text-black py-3 sm:py-4 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] font-bold hover:bg-gray-200 active:bg-gray-300 transition-colors"
             >
-              Sign In
+              Войти
             </button>
 
-            {/* Divider */}
             <div className="relative py-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-white/5"></div>
               </div>
               <div className="relative flex justify-center">
                 <span className="bg-[#0a0a0a] px-4 text-[9px] uppercase tracking-widest text-gray-700">
-                  Or
+                  или
                 </span>
               </div>
             </div>
 
-            {/* Register Link */}
             <div className="text-center">
               <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-gray-600">
-                Don't have an account?{' '}
+                Нету учетной записи?{' '}
               </span>
-              <Link href="/register"
+              <Link href="/auth/register"
                  className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white hover:opacity-70 transition-opacity">
-                Register
+                Регистрация
               </Link>
             </div>
           </form>
 
         </div>
 
-        {/* Decorative Element */}
         <div className="mt-16 sm:mt-20 flex flex-col items-center gap-3 sm:gap-4 opacity-30">
           <div className="w-[1px] h-8 sm:h-12 bg-white/10"></div>
           <span

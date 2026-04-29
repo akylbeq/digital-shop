@@ -63,7 +63,7 @@ export default function Register() {
 
             <div className="space-y-3">
               <label className="block text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-gray-500">
-                Email Address
+                Email Адрес
               </label>
               <input
                 type="email"
@@ -78,7 +78,7 @@ export default function Register() {
 
             <div className="space-y-3">
               <label className="block text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-gray-500">
-                Password
+                Пароль
               </label>
               <input
                 type="password"
@@ -93,7 +93,7 @@ export default function Register() {
 
             <div className="space-y-3">
               <label className="block text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-gray-500">
-                Confirm Password
+                Подтверждение пароля
               </label>
               <input
                 type="password"
@@ -110,7 +110,7 @@ export default function Register() {
               type="submit"
               className="w-full bg-white text-black py-3 sm:py-4 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] font-bold hover:bg-gray-200 active:bg-gray-300 transition-colors"
             >
-              Create Account
+              Создать аккаунт
             </button>
 
             <div className="relative py-6">
@@ -119,18 +119,18 @@ export default function Register() {
               </div>
               <div className="relative flex justify-center">
                 <span className="bg-[#0a0a0a] px-4 text-[9px] uppercase tracking-widest text-gray-700">
-                  Or
+                  Или
                 </span>
               </div>
             </div>
 
             <div className="text-center">
               <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-gray-600">
-                Already have an account?{' '}
+                Уже есть учетная запись?{' '}
               </span>
-              <Link href="/login"
+              <Link href="/auth/login"
                  className="text-[9px] sm:text-[10px] uppercase tracking-widest text-white hover:opacity-70 transition-opacity">
-                Login
+                Войти
               </Link>
             </div>
           </form>

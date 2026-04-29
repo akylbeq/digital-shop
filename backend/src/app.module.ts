@@ -41,7 +41,6 @@ import { TelegramModule } from './telegram/telegram.module';
     }),
 
     AuthModule,
-
     UsersModule,
     CategoriesModule,
     ProductsModule,

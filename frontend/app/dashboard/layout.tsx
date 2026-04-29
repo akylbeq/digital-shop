@@ -36,9 +36,9 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
   ];
 
   return (
-    <div className="min-h-screen bg-[#050505] text-zinc-100 font-sans">
-      <div className="bg-black/80 backdrop-blur-xl border-b border-white/5">
-        <div className="max-w-6xl mx-auto h-14 flex items-center justify-between">
+    <div className="site-shell text-zinc-100 font-sans">
+      <div className="bg-black/80 backdrop-blur-xl border-b border-white/10 sticky top-[84px] z-30">
+        <div className="page-container h-14 flex items-center justify-between">
           <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
             {navItems.map((item) => (
               <Link
@@ -60,7 +60,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
       </div>
 
       {/* 2. КОНТЕНТ */}
-      <main className="max-w-6xl mx-auto">
+      <main className="page-container">
         {children}
       </main>
     </div>

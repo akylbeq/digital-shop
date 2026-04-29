@@ -98,7 +98,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="py-6 space-y-6">
+    <div className="py-8 space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold uppercase tracking-tighter flex items-center gap-2">
@@ -125,7 +125,7 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <div className="rounded-sm border border-white/5 bg-zinc-950/50 overflow-x-auto">
+      <div className="rounded-2xl border border-white/10 bg-zinc-950/50 overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="text-[10px] uppercase tracking-widest text-zinc-500 border-b border-white/5">

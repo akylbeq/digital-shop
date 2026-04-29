@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrderDto {
   @IsNotEmpty()
@@ -7,6 +7,9 @@ export class CreateOrderDto {
   @IsNotEmpty()
   @IsString()
   duration: string;
+
+  @IsOptional()
   @IsString()
+  @IsIn(['sbp', 'card', 'admin'])
   payment_method: string;
 }

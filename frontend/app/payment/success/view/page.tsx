@@ -26,8 +26,8 @@ export default function SuccessPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
-      <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-white/[0.03] p-8">
+    <div className="site-shell flex items-center justify-center px-4">
+      <div className="w-full max-w-2xl premium-card p-8">
         <h1 className="text-4xl font-black uppercase italic">Success</h1>
 
         {!data && (

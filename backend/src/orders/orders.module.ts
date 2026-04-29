@@ -8,6 +8,7 @@ import { OrdersController } from './orders.controller';
 import { TelegramModule } from '../telegram/telegram.module';
 import { OrdersPublicIdBackfillService } from './orders-public-id-backfill.service';
 import { ReferralsModule } from '../referrals/referrals.module';
+import { UserOrdersController } from './user-orders.controller';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { ReferralsModule } from '../referrals/referrals.module';
     ReferralsModule,
     forwardRef(() => TelegramModule),
   ],
-  controllers: [OrdersController],
+  controllers: [OrdersController, UserOrdersController],
   providers: [OrdersService, OrdersPublicIdBackfillService],
   exports: [OrdersService],
 })

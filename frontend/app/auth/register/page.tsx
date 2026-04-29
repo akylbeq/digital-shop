@@ -42,10 +42,10 @@ export default function Register() {
   }, [user])
 
   return (
-    <div className="min-h-screen">
+    <div className="site-shell">
 
       <section className="min-h-screen flex flex-col items-center justify-center px-4 pt-20 py-20">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md premium-card p-6 sm:p-8">
 
           <div className="text-center mb-12 sm:mb-16">
             <span
@@ -71,7 +71,7 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="your@email.com"
                 required
-                className="w-full bg-transparent border border-white/10 px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base focus:border-white/30 focus:outline-none transition-colors placeholder:text-gray-700"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base focus:border-white/30 focus:outline-none transition-colors placeholder:text-gray-500"
               />
             </div>
 
@@ -86,7 +86,7 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="••••••••"
                 required
-                className="w-full bg-transparent border border-white/10 px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base focus:border-white/30 focus:outline-none transition-colors placeholder:text-gray-700"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base focus:border-white/30 focus:outline-none transition-colors placeholder:text-gray-500"
               />
             </div>
 
@@ -101,7 +101,7 @@ export default function Register() {
                 onChange={handleChange}
                 placeholder="••••••••"
                 required
-                className="w-full bg-transparent border border-white/10 px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base focus:border-white/30 focus:outline-none transition-colors placeholder:text-gray-700"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base focus:border-white/30 focus:outline-none transition-colors placeholder:text-gray-500"
               />
             </div>
 

@@ -38,7 +38,7 @@ export default function CategoriesPage() {
   }, [page, limit, search, getCategories]);
 
   return (
-    <div className="py-6 space-y-6">
+    <div className="py-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold uppercase tracking-tighter">Categories</h1>
@@ -88,7 +88,7 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      <div className="rounded-sm border border-white/5 bg-zinc-950/50 overflow-hidden">
+      <div className="rounded-2xl border border-white/10 bg-zinc-950/50 overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
           <tr className="text-[10px] uppercase tracking-widest text-zinc-500 border-b border-white/5 bg-white/[0.01]">

@@ -126,10 +126,20 @@ export interface CreateOrder {
   payment_method: string;
 }
 
+export type PublicOrderStatus =
+  | 'PENDING'
+  | 'WAITING_PAYMENT'
+  | 'PENDING_REVIEW'
+  | 'PAID'
+  | 'REJECTED'
+  | 'FAILED'
+  | 'CANCELLED'
+  | 'EXPIRED';
+
 export interface UnopayResponse {
   status: string;
   transaction_id: string;
-  payment_url: string;
+  payment_url: string | null;
   amount: number;
   currency: string;
   orderId: string;
@@ -138,7 +148,7 @@ export interface UnopayResponse {
 export interface IOrderPublicResponse {
   id: string;
   publicId: string;
-  status: string;
+  status: PublicOrderStatus;
   isDelivered: boolean;
   product: string;
   amount: number;

@@ -21,7 +21,7 @@ export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
   changeModalStatus: () => set((state) => ({ modal: !state.modal })),
   async createOrder(order: CreateOrder) {
     try {
-      if (!order.duration && !order.productId) {
+      if (!order.duration || !order.productId) {
         toast.error('Возникла ошибка при создании заказа');
         return false;
       }

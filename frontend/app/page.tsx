@@ -4,12 +4,29 @@ import Image from 'next/image';
 
 export default async function Home() {
   const categories = await getCategories();
-  console.log(categories);
+  const advantages = [
+    {
+      title: 'Мгновенная выдача',
+      text: 'После подтверждения оплаты товар автоматически появляется в личных покупках.',
+    },
+    {
+      title: 'Проверенные поставщики',
+      text: 'Публикуем только те цифровые позиции, которые проходят ручную модерацию.',
+    },
+    {
+      title: 'Прозрачная оплата',
+      text: 'Вы всегда видите статус заказа и проверку оплаты в реальном времени.',
+    },
+    {
+      title: 'Поддержка 24/7',
+      text: 'Оперативно помогаем по вопросам заказа, оплаты и активации.',
+    },
+  ];
 
   return (
-    <div className="min-h-screen text-white selection:bg-white selection:text-black">
+    <div className="site-shell selection:bg-white selection:text-black">
 
-      <section className="h-screen flex flex-col items-center justify-center relative border-b border-white/5 overflow-hidden">
+      <section className="h-screen flex flex-col items-center justify-center relative border-b border-white/10 overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
 
         <div className="text-center z-10 w-full px-4 flex flex-col items-center">
@@ -19,20 +36,20 @@ export default async function Home() {
             <div className="h-[1px] w-8 bg-white/20" />
           </div>
 
-          <h1 className="text-[18vw] font-black leading-none tracking-tighter uppercase italic text-white mix-blend-difference select-none">
-            zsoft
+          <h1 className="text-[5vw] font-black leading-none tracking-tighter uppercase italic text-white select-none">
+            Лучший магазин по продаже читов для ваших игр
           </h1>
 
-          <p className="mt-6 text-[10px] font-mono text-white/20 uppercase tracking-[0.2em]">
-            Secure. Digital. Distributed.
+          <p className="mt-6 text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">
+            Большой каталог приватных качественных читов, созданных опытными разработчиками, которые сделают вашу игру более продуктивной и комфортной.
           </p>
 
-          <a
+          <Link
           href="#categories"
           className="mt-10 px-8 py-3 bg-white text-black text-sm font-medium rounded-xl hover:bg-white/90 transition-colors"
           >
           Каталог
-        </a>
+        </Link>
     </div>
 
   <div className="absolute bottom-12 flex flex-col items-center gap-4">
@@ -40,7 +57,28 @@ export default async function Home() {
   </div>
 </section>
 
-  <section id="categories" className="max-w-6xl mx-auto py-12 px-4 sm:px-6 md:px-10 lg:px-0 ">
+  <section id="why-us" className="premium-section page-container">
+    <div className="flex items-end justify-between gap-4 mb-8">
+      <div>
+        <p className="text-[11px] uppercase tracking-[0.25em] text-white/45">Почему стоит выбрать именно нас</p>
+        <h2 className="text-3xl md:text-4xl font-semibold mt-2">Платформа для уверенных покупок</h2>
+      </div>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {advantages.map((item) => (
+        <div key={item.title} className="premium-card p-6">
+          <h3 className="text-lg font-semibold">{item.title}</h3>
+          <p className="mt-2 text-sm text-white/70 leading-relaxed">{item.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section id="categories" className="page-container premium-section">
+    <div className="flex items-end justify-between mb-6">
+      <h2 className="text-2xl md:text-3xl font-semibold">Каталог категорий</h2>
+      <span className="text-xs uppercase tracking-[0.2em] text-white/40">{categories.length} категорий</span>
+    </div>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {categories.map((c) => (
         <Link
@@ -90,6 +128,17 @@ export default async function Home() {
           </div>
         </Link>
       ))}
+    </div>
+  </section>
+
+  <section id="how-buy" className="page-container pb-16">
+    <div className="premium-card p-6 md:p-8">
+      <p className="text-[11px] uppercase tracking-[0.25em] text-white/45 mb-3">Как купить</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-white/80">
+        <div><span className="text-white font-semibold">1.</span> Выберите категорию и товар.</div>
+        <div><span className="text-white font-semibold">2.</span> Оплатите удобным способом.</div>
+        <div><span className="text-white font-semibold">3.</span> Получите ключ в разделе «Мои покупки».</div>
+      </div>
     </div>
   </section>
 </div>

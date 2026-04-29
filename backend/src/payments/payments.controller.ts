@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { OrdersService } from '../orders/orders.service';
 import { UnopayWebhookBody } from './unopay/dto/webhook.dto';
 import crypto from 'node:crypto';
+import { OrderPaymentSource } from '../orders/order.entity';
 
 @Controller('payments')
 export class PaymentsController {
@@ -36,12 +37,12 @@ export class PaymentsController {
       .createHmac('sha256', apiKey)
       .update(req.rawBody)
       .digest('hex');
+    const expectedBuffer = Buffer.from(expectedSignature);
+    const signatureBuffer = Buffer.from(signature);
 
     if (
-      !crypto.timingSafeEqual(
-        Buffer.from(expectedSignature),
-        Buffer.from(signature),
-      )
+      expectedBuffer.length !== signatureBuffer.length ||
+      !crypto.timingSafeEqual(expectedBuffer, signatureBuffer)
     ) {
       throw new BadRequestException('Invalid signature');
     }
@@ -53,8 +54,17 @@ export class PaymentsController {
     }
 
     if (body.event === 'payment.succeeded' && body.status === 'paid') {
+      const order = await this.ordersService.findById(orderId);
+      if (!order) {
+        throw new BadRequestException('Заказ не найден');
+      }
+      if (order.paymentSource !== OrderPaymentSource.UNOPAY) {
+        throw new BadRequestException('Некорректный источник оплаты');
+      }
       await this.ordersService.markPaid(orderId);
-      await this.ordersService.deliverDigitalItem(orderId);
+      if (!order.isDelivered) {
+        await this.ordersService.deliverDigitalItem(orderId);
+      }
     }
 
     return 'OK';

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -28,12 +32,32 @@ export class UnopayService {
       throw new NotFoundException('Price not found');
     }
     const priceIndex = product.prices.indexOf(priceEntry);
-    const order = await this.ordersService.createManualCardOrder(
-      userId,
-      dto.productId,
-      priceEntry.price,
-      priceIndex,
-    );
+    const paymentMethod = dto.payment_method ?? 'sbp';
+    const isSbp = paymentMethod === 'sbp';
+    const order = isSbp
+      ? await this.ordersService.createUnopayOrder(
+          userId,
+          dto.productId,
+          priceEntry.price,
+          priceIndex,
+        )
+      : await this.ordersService.createManualCardOrder(
+          userId,
+          dto.productId,
+          priceEntry.price,
+          priceIndex,
+        );
+
+    if (!isSbp) {
+      return {
+        status: 'created',
+        transaction_id: '',
+        payment_url: null,
+        amount: order.amount,
+        currency: 'RUB',
+        orderId: order.publicId,
+      };
+    }
 
     const orderWithUser = await this.ordersService.findByIdWithRelations(
       order.id,
@@ -54,6 +78,9 @@ export class UnopayService {
       }),
     });
 
+    if (!response.ok) {
+      throw new BadGatewayException('Не удалось создать платеж в Unopay');
+    }
     const payment = (await response.json()) as OrderResponseDto;
 
     return {

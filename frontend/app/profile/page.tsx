@@ -18,11 +18,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-main pb-20">
+    <div className="site-shell font-main pb-20">
       {/* Сетка на фоне для технологичного вида */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto px-6 pt-32 relative z-10">
+      <div className="page-container pt-32 relative z-10">
 
         {/* Header Профиля */}
         <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-8 mb-16 border-b border-white/5 pb-12">

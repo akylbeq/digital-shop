@@ -82,10 +82,10 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-main selection:bg-white selection:text-black">
+    <div className="site-shell font-main selection:bg-white selection:text-black">
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto px-6 py-24 relative z-10">
+      <div className="page-container py-24 relative z-10">
         <div className="mb-20 space-y-4 text-center md:text-left">
           <h1 className="font-title text-4xl md:text-6xl tracking-[0.2em] uppercase leading-tight">
             Contact <span className="text-white/40">Us</span>

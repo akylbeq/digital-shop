@@ -43,8 +43,8 @@ export default async function ProductPage({
   if (!product) notFound();
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-white selection:text-black">
-      <div className="max-w-6xl mx-auto py-10 px-4 sm:px-6 md:px-10 lg:px-0">
+    <div className="site-shell selection:bg-white selection:text-black">
+      <div className="page-container py-10">
         <Breadcrumb className="mb-10">
           <BreadcrumbList>
             <BreadcrumbItem>

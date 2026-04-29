@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useUserStore } from '@/app/store/user/user.store';
 
@@ -8,7 +10,30 @@ interface Props {
 }
 
 const AuthBlock = ({mobile = false, setIsMenuOpen}: Props) => {
-  const {user} = useUserStore();
+  const { user, logout } = useUserStore();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!userMenuRef.current) return;
+      const target = event.target as Node;
+      if (!userMenuRef.current.contains(target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, []);
+
+  const onLogout = async () => {
+    await logout();
+    setIsUserMenuOpen(false);
+    setIsMenuOpen(false);
+  };
 
   return (
     <div className={`${mobile ? 'flex flex-col gap-6' : 'hidden md:flex items-center gap-8'}`}>
@@ -32,26 +57,47 @@ const AuthBlock = ({mobile = false, setIsMenuOpen}: Props) => {
         </Link>
       )}
       {user ? (
-        <Link
-          href="/profile"
-          onClick={() => setIsMenuOpen(false)}
-          className={`group flex items-center gap-4 transition-all duration-300 ${mobile ? 'w-full' : ''}`}
+        <div
+          ref={userMenuRef}
+          className={`relative ${mobile ? 'w-full' : ''}`}
         >
-          <div className="flex flex-col items-end">
-            <span
-              className="text-[9px] text-white/30 uppercase tracking-[0.3em] group-hover:text-white/50 transition-colors">
-              Authorized
-            </span>
-            <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-white">
-              {user.email.split('@')[0]}
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={() => setIsUserMenuOpen((prev) => !prev)}
+            className={`group flex items-center gap-4 transition-all duration-300 ${mobile ? 'w-full' : ''}`}
+          >
+            <div className="flex flex-col items-end">
+              <span
+                className="text-[9px] text-white/30 uppercase tracking-[0.3em] group-hover:text-white/50 transition-colors">
+                Authorized
+              </span>
+              <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-white">
+                {user.email.split('@')[0]}
+              </span>
+            </div>
 
-          <div
-            className="w-8 h-8 border border-white/10 bg-white/5 flex items-center justify-center group-hover:border-white/30 transition-all">
-            <div className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]"/>
-          </div>
-        </Link>
+            <div
+              className="w-8 h-8 border border-white/10 bg-white/5 flex items-center justify-center group-hover:border-white/30 transition-all">
+              <div className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]"/>
+            </div>
+          </button>
+
+          {isUserMenuOpen && (
+            <div
+              className={`absolute z-50 mt-2 min-w-[180px] border border-white/10 bg-[#0b0b0b] shadow-2xl ${
+                mobile ? 'left-0 right-0' : 'right-0'
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => void onLogout()}
+                className="w-full px-4 py-3 text-left text-[10px] uppercase tracking-[0.25em] text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                Выйти
+              </button>
+            </div>
+          )}
+        </div>
       ) : (
         <div className={`flex ${mobile ? 'flex-col gap-6' : 'items-center gap-8'}`}>
           <Link

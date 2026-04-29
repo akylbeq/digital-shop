@@ -159,8 +159,8 @@ export default async function CategoryPage({
 
   return (
     <div
-      className="min-h-screen text-white selection:bg-white selection:text-black"
-      style={{ background: '#050505', fontFamily: "'DM Mono', monospace" }}
+      className="site-shell selection:bg-white selection:text-black"
+      style={{ fontFamily: "'DM Mono', monospace" }}
     >
       <div className="relative w-full h-[420px] overflow-hidden">
         {category.image ? (
@@ -267,7 +267,7 @@ export default async function CategoryPage({
         </div>
       </div>
 
-      <div className="relative max-w-6xl mx-auto py-12 px-4 sm:px-6 md:px-10 lg:px-0">
+      <div className="relative page-container py-12">
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-2">
           {category.products.map((product, i) => (
             <ProductCard
@@ -279,7 +279,7 @@ export default async function CategoryPage({
           ))}
         </section>
 
-        <footer className="mt-16 pt-8 border-t border-white/[0.04] flex items-center justify-between">
+        <footer className="mt-16 pt-8 border-t border-white/10 flex items-center justify-between">
           <p className="text-[10px] font-mono text-white/20 tracking-wider uppercase">
             All prices in RUB · Billed as selected
           </p>

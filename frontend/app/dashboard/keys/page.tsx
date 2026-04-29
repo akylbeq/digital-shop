@@ -32,7 +32,7 @@ export default function KeysPage() {
   };
 
   return (
-    <div className="py-6 space-y-6">
+    <div className="py-8 space-y-6">
       <div className="flex flex-col gap-2 sm:gap-0 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-xl font-semibold uppercase tracking-tighter">
@@ -66,7 +66,7 @@ export default function KeysPage() {
         </Select>
       </div>
 
-      <div className="rounded-sm border border-white/5 bg-zinc-950/50 overflow-hidden">
+      <div className="rounded-2xl border border-white/10 bg-zinc-950/50 overflow-hidden">
 
         <table className="w-full text-left border-collapse">
 

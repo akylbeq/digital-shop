@@ -2,9 +2,6 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
-/**
- * Старые заказы без publicId: заполняем UUID после синхронизации схемы.
- */
 @Injectable()
 export class OrdersPublicIdBackfillService implements OnModuleInit {
   private readonly logger = new Logger(OrdersPublicIdBackfillService.name);

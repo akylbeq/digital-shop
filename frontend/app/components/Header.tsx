@@ -3,14 +3,22 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import AuthBlock from '@/app/components/AuthBlock';
+import { useUserStore } from '@/app/store/user/user.store';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user } = useUserStore();
+  const navItems = [
+    { href: '/#categories', label: 'Каталог' },
+    { href: '/#why-us', label: 'Почему мы' },
+    { href: '/#how-buy', label: 'Как купить' },
+    { href: '/contact', label: 'Контакты' },
+  ];
 
   return (
     <>
       <header
-        className="border-b border-white/5"
+        className="border-b border-white/10 bg-black/40 backdrop-blur-xl sticky top-0 z-40"
       >
         <div className="max-w-6xl mx-auto flex justify-between items-center px-4 sm:px-6 md:px-10 lg:px-0 py-6">
           <Link
@@ -33,11 +41,20 @@ export default function Header() {
 
           </Link>
 
-          <nav className="hidden md:flex gap-10 text-[10px] uppercase tracking-[0.3em] text-gray-500">
-            <Link href="/#categories"
-                  className="hover:text-white transition-colors font-mono font-medium text-sm">Каталог</Link>
-            <Link href="/contact"
-                  className="hover:text-white transition-colors font-mono font-medium text-sm">Контакты</Link>
+          <nav className="hidden md:flex items-center gap-8 text-[10px] uppercase tracking-[0.25em] text-gray-500">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="hover:text-white transition-colors font-mono font-medium text-xs"
+              >
+                {item.label}
+              </Link>
+            ))}
+            {user && (
+              <Link href="/purchases"
+                    className="hover:text-white transition-colors font-mono font-medium text-xs">Мои покупки</Link>
+            )}
           </nav>
 
           <AuthBlock setIsMenuOpen={setIsMenuOpen} />
@@ -60,20 +77,25 @@ export default function Header() {
         className={`fixed inset-0 backdrop-blur-xl z-40 transition-all duration-500 ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
         <nav className="flex flex-col items-center justify-center h-full gap-12">
           <div className="flex flex-col items-center gap-8">
-            <Link
-              href="/#categories"
-              className="text-lg uppercase tracking-[0.4em] text-white/50 hover:text-white transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Каталог
-            </Link>
-            <Link
-              href="/contact"
-              className="text-lg uppercase tracking-[0.4em] text-white/50 hover:text-white transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Контакты
-            </Link>
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-lg uppercase tracking-[0.4em] text-white/50 hover:text-white transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+            {user && (
+              <Link
+                href="/purchases"
+                className="text-lg uppercase tracking-[0.4em] text-white/50 hover:text-white transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Мои покупки
+              </Link>
+            )}
           </div>
 
           <div className="w-8 h-[1px] bg-white/10"></div>

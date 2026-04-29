@@ -5,12 +5,18 @@ import { formatPrice } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import sbpImage from '../../public/sbp-logo.png';
+import cardImage from '../../public/img_1.png';
 import { toast } from 'sonner';
 import { useCheckoutStore } from '@/app/store/checkout/checkout.store';
 import { useRouter } from 'next/navigation';
 import { Circle } from 'lucide-react';
+import { useUserStore } from '@/app/store/user/user.store';
 
 type PaymentMethod = 'sbp' | 'card' | 'admin' | null;
+const paymentMethods: { id: Exclude<PaymentMethod, null>; title: string; desc: string }[] = [
+  { id: 'sbp', title: 'СБП', desc: 'Система быстрых платежей', img: sbpImage },
+  { id: 'admin', title: 'Через администратора', desc: 'Прямой платеж', img: cardImage },
+];
 
 interface Props {
   id: number;
@@ -26,24 +32,39 @@ export default function SelectPaymentProvider({
   id
                                               }: Props) {
   const router = useRouter();
-  const [method, setMethod] = useState<string | null>(null);
+  const [method, setMethod] = useState<PaymentMethod>(null);
   const {modal, changeModalStatus, order, loading, createOrder} = useCheckoutStore();
+  const user = useUserStore().user
   const commission = selectedPrice.price * 0.09;
   const total = selectedPrice.price + commission;
+
+  useEffect(() => {
+    if (modal && !user) {
+      router.push('/auth/register');
+      changeModalStatus();
+    }
+  }, [modal, user, router, changeModalStatus]);
+
   const onPay = async () => {
     if (!method) {
       return toast.error('Выберите платежную систему!')
     }
-    if (method === 'sbp') {
-      await createOrder({productId: id, duration: selectedPrice.duration, payment_method: method})
+    if (method === 'admin') {
+      window.open('https://t.me/xploi')
+      return
     }
+    await createOrder({
+      productId: id,
+      duration: selectedPrice.duration,
+      payment_method: method,
+    });
   };
 
   useEffect(() => {
     if (order) {
       router.push('/invoice/' + order.orderId)
     }
-  }, [order])
+  }, [order, router])
 
   return (
     <Dialog open={modal} onOpenChange={changeModalStatus}>
@@ -67,13 +88,8 @@ export default function SelectPaymentProvider({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Список методов оплаты */}
         <div className="flex flex-col gap-2 mt-4">
-          {[
-            { id: 'sbp', title: 'СБП', desc: 'Система быстрых платежей', icon: sbpImage },
-            { id: 'card', title: 'На карту', desc: 'Перевод по реквизитам', icon: sbpImage },
-            { id: 'admin', title: 'Через администратора', desc: 'Прямой платеж', icon: sbpImage },
-          ].map((item) => (
+          {paymentMethods.map((item) => (
             <button
               key={item.id}
               onClick={() => setMethod(item.id)}
@@ -85,7 +101,7 @@ export default function SelectPaymentProvider({
               )}
             >
               <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                <Image width={20} height={20} src={item.icon} alt={item.id} />
+                <Image width={20} height={20} src={item.img} alt={item.id} />
               </div>
               <div>
                 <p className="text-sm font-medium text-white">{item.title}</p>

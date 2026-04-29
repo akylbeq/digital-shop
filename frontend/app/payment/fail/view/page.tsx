@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function FailPage() {
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
+    <div className="site-shell selection:bg-white selection:text-black">
       <section className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden border-b border-white/5">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_55%_55%_at_50%_50%,#000_70%,transparent_100%)]" />
 

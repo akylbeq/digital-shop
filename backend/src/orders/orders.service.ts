@@ -19,6 +19,15 @@ export interface OrderListFilters {
   limit: number;
 }
 
+export interface UserPurchaseItem {
+  amount: string;
+  status: OrderStatus;
+  paymentSource: OrderPaymentSource | null;
+  deliveredKey: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
@@ -47,16 +56,47 @@ export class OrdersService {
     amount: number,
     selectedPriceIndex: number | null,
   ) {
-    const order = this.ordersRepository.create({
-      publicId: randomUUID(),
+    return this.createOrderWithSource({
       userId,
       itemId,
       amount,
-      status: OrderStatus.WAITING_PAYMENT,
+      selectedPriceIndex,
       paymentSource: OrderPaymentSource.MANUAL_CARD,
+    });
+  }
+
+  async createUnopayOrder(
+    userId: number,
+    itemId: number,
+    amount: number,
+    selectedPriceIndex: number | null,
+  ) {
+    return this.createOrderWithSource({
+      userId,
+      itemId,
+      amount,
+      selectedPriceIndex,
+      paymentSource: OrderPaymentSource.UNOPAY,
+    });
+  }
+
+  private async createOrderWithSource(params: {
+    userId: number;
+    itemId: number;
+    amount: number;
+    selectedPriceIndex: number | null;
+    paymentSource: OrderPaymentSource;
+  }) {
+    const order = this.ordersRepository.create({
+      publicId: randomUUID(),
+      userId: params.userId,
+      itemId: params.itemId,
+      amount: params.amount,
+      status: OrderStatus.WAITING_PAYMENT,
+      paymentSource: params.paymentSource,
       deliveredKey: null,
       isDelivered: false,
-      selectedPriceIndex,
+      selectedPriceIndex: params.selectedPriceIndex,
     });
 
     return this.ordersRepository.save(order);
@@ -84,6 +124,43 @@ export class OrdersService {
       take,
       relations: ['product'],
     });
+  }
+
+  async findPurchasesForUser(userId: number, take = 100): Promise<UserPurchaseItem[]> {
+    const rows = await this.ordersRepository
+      .createQueryBuilder('o')
+      .leftJoin(Key, 'k', 'k.orderId = o.id')
+      .where('o.userId = :userId', { userId })
+      .andWhere('o.status = :status', { status: OrderStatus.PAID })
+      .orderBy('o.id', 'DESC')
+      .take(take)
+      .select([
+        'o.amount AS amount',
+        'o.status AS status',
+        'o.paymentSource AS "paymentSource"',
+        'o.deliveredKey AS "deliveredKey"',
+        'o.createdAt AS "createdAt"',
+        'o.updatedAt AS "updatedAt"',
+      ])
+      .addSelect('k.key', 'soldKey')
+      .getRawMany<{
+        amount: string;
+        status: OrderStatus;
+        paymentSource: OrderPaymentSource | null;
+        deliveredKey: string | null;
+        soldKey: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+      }>();
+
+    return rows.map((row) => ({
+      amount: row.amount,
+      status: row.status,
+      paymentSource: row.paymentSource,
+      deliveredKey: row.deliveredKey ?? row.soldKey ?? null,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    }));
   }
 
   async findLastWaitingPaymentForUser(userId: number) {
@@ -119,6 +196,10 @@ export class OrdersService {
 
     if (!order) {
       throw new NotFoundException('Заказ не найден');
+    }
+
+    if (order.status === OrderStatus.PAID) {
+      return order;
     }
 
     order.status = OrderStatus.PAID;

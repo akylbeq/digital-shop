@@ -42,10 +42,6 @@ export class UnopayWebhookBody {
   @IsOptional()
   payer_email: string;
 
-  @IsBoolean()
-  @IsOptional()
-  is_test: boolean;
-
   @IsObject()
   @ValidateNested()
   @Type(() => WebhookMetadata)

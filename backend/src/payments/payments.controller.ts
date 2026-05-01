@@ -22,10 +22,11 @@ export class PaymentsController {
 
   @Post('webhook/unopay')
   async unopayWebhook(
-    @Body() body: UnopayWebhookBody,
+    @Body() body: any,
     @Headers('x-unopay-signature') signature: string,
     @Req() req: RawBodyRequest<Request>,
   ) {
+    console.log(body);
     if (!signature) {
       throw new BadRequestException('Подпись отсутствует');
     }
@@ -48,6 +49,8 @@ export class PaymentsController {
     }
 
     const orderId = Number(body.metadata?.orderId);
+
+    console.log(orderId);
 
     if (Number.isNaN(orderId)) {
       throw new BadRequestException('order_id отсутствует в metadata');

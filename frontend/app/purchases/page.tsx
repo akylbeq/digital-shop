@@ -93,6 +93,7 @@ export default function PurchasesPage() {
                     <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
                       <p className="text-[11px] text-emerald-100/80 mb-1">Ключ доступа</p>
                       <code className="text-emerald-100 break-all">{order.deliveredKey}</code>
+                      <Link href="https://t.me/setup_mods">Скачать чит</Link>
                     </div>
                   )}
                   {order.status === 'PAID' && !order.deliveredKey && (
